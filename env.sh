@@ -1,0 +1,9 @@
+export LANGSMITH_TRACING=true
+export LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+export LANGSMITH_API_KEY=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
+export LANGSMITH_PROJECT="lang_smith"
+export OPENAI_API_KEY=sk-87cd31617d27428697997b6adaccf2f1
+export TAVILY_API_KEY=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
+export QWEN_EMAIL=davindai@foxmail.com
+export QWEN_PASSWORD=pengjin520_
+export YUANBAO_PHONE=17800212735

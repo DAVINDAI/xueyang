@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+      - ./results:/app/results
+    environment:
+      - GLM_API_KEY=${GLM_API_KEY}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - GLM_API_BASE=${GLM_API_BASE:-https://api.example.com/glm5}
+      - QWEN_API_BASE=${QWEN_API_BASE:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+    restart: unless-stopped
+    networks:
+      - langgraph-network
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - langgraph-network
+
+networks:
+  langgraph-network:
+    driver: bridge
+
+volumes:
+  data:
+  results:

@@ -1,0 +1,25 @@
+# LangChain核心框架
+langchain>=0.3.0
+langchain-openai>=0.1.0
+
+# 大模型相关
+openai>=1.0.0  # 用于OpenAI兼容接口
+
+# 工具库
+tiktoken>=0.5.0  # 用于token计算
+python-dotenv>=1.0.0  # 环境变量管理
+requests>=2.31.0  # HTTP请求
+
+# Web框架
+fastapi>=0.100.0  # API框架
+uvicorn>=0.23.0  # ASGI服务器
+
+# 数据处理
+pydantic>=2.0.0  # 数据验证
+pydantic-settings>=2.0.0  # 配置管理
+
+# 数据库
+# SQLite是Python标准库的一部分，无需额外安装
+
+# LangGraph
+langgraph>=0.2.0  # 状态管理
