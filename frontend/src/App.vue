@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <div class="logo">LangGraph Chat</div>
+      <img src="/xy.png" alt="Logo" class="logo" />
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
         <router-link to="/stats" class="nav-link">统计信息</router-link>
@@ -59,8 +59,9 @@ body {
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: bold;
+  height: 48px;
+  width: auto;
+  object-fit: contain;
 }
 
 .nav {

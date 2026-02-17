@@ -78,5 +78,5 @@ export_*.py
 import_data.py
 lang_smith.py
 test_*.py
-chat.py
-start.py
+/chat.py
+/start.py
