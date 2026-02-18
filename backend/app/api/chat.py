@@ -98,7 +98,11 @@ AI：{ai_message['content']}
             """
     
     # 使用大模型提取关键信息
-    analysis_result = await llm_service.agenerate_completion(model_name, analysis_prompt)
+    try:
+        analysis_result = await llm_service.agenerate_completion(model_name, analysis_prompt)
+    except Exception as e:
+        logger.error(f"备忘录分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail="备忘录分析失败")
     
     # 清理结果
     if analysis_result.startswith('```json'):

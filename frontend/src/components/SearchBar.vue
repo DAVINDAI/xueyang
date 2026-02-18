@@ -160,12 +160,20 @@ const handleSearch = async () => {
 }
 
 .search-loading {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   margin-top: 8px;
   color: #909399;
   font-size: 14px;
 }
 
 .search-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   margin-top: 8px;
   color: #f56c6c;
   font-size: 14px;
