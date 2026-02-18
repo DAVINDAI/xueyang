@@ -1,17 +1,21 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 import os
 from app.config import TAVILY_CONFIG
 
 router = APIRouter()
 
+class SearchRequest(BaseModel):
+    query: str
+
 @router.post("/search")
-async def search(query: dict):
+async def search(request: SearchRequest):
     """搜索接口"""
     try:
         from tavily import TavilyClient
         
         # 获取查询参数
-        search_query = query.get("query", "")
+        search_query = request.query
         if not search_query:
             raise HTTPException(status_code=400, detail="查询参数不能为空")
         

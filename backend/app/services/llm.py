@@ -271,6 +271,19 @@ class LLMService:
             logger.error(f"文本完成错误: {str(e)}")
             return f"抱歉，发生错误：{str(e)}"
     
+    async def agenerate_completion(self, model_name: str, prompt: str) -> str:
+        """异步生成文本完成"""
+        try:
+            llm = self.get_llm(model_name)
+            start_time = time.time()
+            response = await llm.ainvoke(prompt)
+            elapsed_time = time.time() - start_time
+            logger.info(f"文本完成调用耗时: {elapsed_time:.2f}秒, 模型: {model_name}")
+            return response.content
+        except Exception as e:
+            logger.error(f"文本完成错误: {str(e)}")
+            return f"抱歉，发生错误：{str(e)}"
+    
     def clear_llm(self, model_name: str):
         """清除大模型实例"""
         if model_name in self.llms:
