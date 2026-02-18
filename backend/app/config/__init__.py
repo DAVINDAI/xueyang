@@ -22,3 +22,9 @@ COMPRESSION_CONFIG = {
     "target_tokens": 1000,  # 压缩目标token数
     "threshold_ratio": 0.8  # 达到上下文长度80%时开始压缩
 }
+
+# Tavily API配置
+TAVILY_CONFIG = {
+    "api_key_env": "TAVILY_API_KEY",
+    "base_url": "https://api.tavily.com"
+}

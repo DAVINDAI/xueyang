@@ -23,3 +23,4 @@ pydantic-settings>=2.0.0  # 配置管理
 
 # LangGraph
 langgraph>=0.2.0  # 状态管理
+tavily-python>=0.5.0  # Tavily搜索API

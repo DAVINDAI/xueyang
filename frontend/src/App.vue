@@ -9,6 +9,7 @@
         <router-link to="/chat" class="nav-link">大模型聊天</router-link>
         <router-link to="/memo" class="nav-link">备忘录</router-link>
       </nav>
+      <SearchBar />
     </header>
     <main class="app-main">
       <router-view v-slot="{ Component }">
@@ -24,6 +25,7 @@
 </template>
 
 <script setup>
+import SearchBar from './components/SearchBar.vue';
 // App组件
 </script>
 
@@ -67,6 +69,12 @@ body {
 .nav {
   display: flex;
   gap: 20px;
+  flex: 1;
+  margin: 0 20px;
+}
+
+.search-bar {
+  flex-shrink: 0;
 }
 
 .nav-link {
@@ -117,15 +125,28 @@ body {
 @media (max-width: 768px) {
   .app-header {
     padding: 0 10px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 60px;
+    padding: 10px;
   }
   
   .nav {
     gap: 10px;
+    margin: 10px 0;
+    order: 3;
+    width: 100%;
+    justify-content: center;
   }
   
   .nav-link {
     padding: 6px 12px;
     font-size: 14px;
+  }
+  
+  .search-bar {
+    order: 2;
+    max-width: 300px;
   }
   
   .app-main {

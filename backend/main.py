@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import stats, details, chat
+from app.api import stats, details, chat, search
 from app.services.db import init_database
 import os
 from dotenv import load_dotenv
@@ -37,6 +37,7 @@ app.add_middleware(
 app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
 app.include_router(details.router, prefix="/api/details", tags=["details"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(search.router, prefix="/api", tags=["search"])
 
 # 初始化数据库
 @app.on_event("startup")

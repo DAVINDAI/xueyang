@@ -206,6 +206,93 @@ async def chat_completion(
         # 保存用户消息
         user_message_id = save_chat_message(session_id, "user", message, user_token_count)
         
+        # 检查是否为备忘录命令
+        if message == '记一下' or message == 'm':
+            # 获取会话的所有消息（包含刚保存的消息）
+            current_messages = get_chat_messages(session_id)
+            if len(current_messages) < 3:  # 需要至少有一条之前的用户消息和AI回复
+                raise HTTPException(status_code=400, detail="会话消息不足，无法创建备忘录")
+            
+            # 构建分析提示
+            last_three_messages = current_messages[-3:]
+            user_message = None
+            ai_message = None
+            
+            for msg in last_three_messages:
+                if msg['role'] == 'user' and msg['id'] != user_message_id:
+                    user_message = msg
+                elif msg['role'] == 'assistant':
+                    ai_message = msg
+            
+            if not user_message or not ai_message:
+                raise HTTPException(status_code=400, detail="无法找到上一轮对话消息")
+            
+            # 构建分析提示
+            analysis_prompt = f"""
+你是一个专业的对话分析助手。请将以下原始对话记录，按话题转换成一个清晰的列表。
+每个列表项包含：主题、用户问题/陈述、AI回复的核心要点。
+确保提取所有技术术语、方法、结论和推荐资源。
+
+**对话记录：**
+用户：{user_message['content']}
+AI：{ai_message['content']}
+
+**输出格式要求（必须严格遵守）：**
+{
+  "topics": [
+    {
+      "topic": "主题名称",
+      "user_question": "用户的问题或陈述",
+      "ai_key_points": [
+        "要点1",
+        "要点2"
+      ],
+      "technical_terms": ["术语1", "术语2"],
+      "methods": ["方法1"],
+      "conclusions": ["结论1"],
+      "resources": ["资源1"]
+    }
+  ]
+}
+
+**重要：**
+- 必须返回有效的 JSON 格式
+- 必须使用上述字段名
+- 必须包含 "topics" 字段
+- 不要返回任何其他格式或解释文本
+- 只返回 JSON，不要包含其他任何内容
+            """
+            
+            # 使用大模型提取关键信息
+            analysis_result = llm_service.generate_completion(model_name, analysis_prompt)
+            
+            # 清理结果
+            if analysis_result.startswith('```json'):
+                analysis_result = analysis_result[7:]
+            if analysis_result.startswith('```'):
+                analysis_result = analysis_result[3:]
+            if analysis_result.endswith('```'):
+                analysis_result = analysis_result[:-3]
+            analysis_result = analysis_result.strip()
+            
+            # 解析 JSON
+            try:
+                analysis_data = json.loads(analysis_result)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=500, detail="大模型返回的结果不是有效的 JSON 格式")
+            
+            # 保存备忘录
+            memo_id = create_memo_message(session_id, user_message['id'], json.dumps(analysis_data, ensure_ascii=False))
+            
+            return {
+                "session_id": session_id,
+                "model_name": model_name,
+                "user_message_id": user_message_id,
+                "message": "备忘录创建成功",
+                "memo_id": memo_id,
+                "analysis": analysis_data
+            }
+        
         # 执行聊天
         response = llm_service.chat(model_name, session_id, message, messages)
         
@@ -265,6 +352,103 @@ async def chat_completion_stream(
         
         # 保存用户消息
         user_message_id = save_chat_message(session_id, "user", message, user_token_count)
+        
+        # 检查是否为备忘录命令
+        if message == '记一下' or message == 'm':
+            # 获取会话的所有消息（包含刚保存的消息）
+            current_messages = get_chat_messages(session_id)
+            if len(current_messages) < 3:  # 需要至少有一条之前的用户消息和AI回复
+                raise HTTPException(status_code=400, detail="会话消息不足，无法创建备忘录")
+            
+            # 构建分析提示
+            last_three_messages = current_messages[-3:]
+            user_message = None
+            ai_message = None
+            
+            for msg in last_three_messages:
+                if msg['role'] == 'user' and msg['id'] != user_message_id:
+                    user_message = msg
+                elif msg['role'] == 'assistant':
+                    ai_message = msg
+            
+            if not user_message or not ai_message:
+                raise HTTPException(status_code=400, detail="无法找到上一轮对话消息")
+            
+            # 构建分析提示
+            analysis_prompt = f"""
+你是一个专业的对话分析助手。请将以下原始对话记录，按话题转换成一个清晰的列表。
+每个列表项包含：主题、用户问题/陈述、AI回复的核心要点。
+确保提取所有技术术语、方法、结论和推荐资源。
+
+**对话记录：**
+用户：{user_message['content']}
+AI：{ai_message['content']}
+
+**输出格式要求（必须严格遵守）：**
+{
+  "topics": [
+    {
+      "topic": "主题名称",
+      "user_question": "用户的问题或陈述",
+      "ai_key_points": [
+        "要点1",
+        "要点2"
+      ],
+      "technical_terms": ["术语1", "术语2"],
+      "methods": ["方法1"],
+      "conclusions": ["结论1"],
+      "resources": ["资源1"]
+    }
+  ]
+}
+
+**重要：**
+- 必须返回有效的 JSON 格式
+- 必须使用上述字段名
+- 必须包含 "topics" 字段
+- 不要返回任何其他格式或解释文本
+- 只返回 JSON，不要包含其他任何内容
+            """
+            
+            # 使用大模型提取关键信息
+            analysis_result = llm_service.generate_completion(model_name, analysis_prompt)
+            
+            # 清理结果
+            if analysis_result.startswith('```json'):
+                analysis_result = analysis_result[7:]
+            if analysis_result.startswith('```'):
+                analysis_result = analysis_result[3:]
+            if analysis_result.endswith('```'):
+                analysis_result = analysis_result[:-3]
+            analysis_result = analysis_result.strip()
+            
+            # 解析 JSON
+            try:
+                analysis_data = json.loads(analysis_result)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=500, detail="大模型返回的结果不是有效的 JSON 格式")
+            
+            # 保存备忘录
+            memo_id = create_memo_message(session_id, user_message['id'], json.dumps(analysis_data, ensure_ascii=False))
+            
+            async def generate_memo_response():
+                # 直接返回备忘录创建成功的响应
+                yield f"data: {json.dumps({'type': 'chunk', 'content': '备忘录创建成功'}, ensure_ascii=False)}\n\n"
+                await asyncio.sleep(0)
+                yield f"data: {json.dumps({'type': 'done', 'user_message_id': user_message_id, 'memo_id': memo_id, 'message': '备忘录创建成功', 'analysis': analysis_data}, ensure_ascii=False)}\n\n"
+            
+            return StreamingResponse(
+                generate_memo_response(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no",
+                    "Transfer-Encoding": "chunked"
+                }
+            )
         
         async def generate():
             full_response = ""
@@ -326,112 +510,7 @@ async def get_chat_config():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取配置失败: {str(e)}")
 
-# 备忘录 API 接口
-
-@router.post("/memo", response_model=Dict[str, Any])
-async def create_memo(
-    session_id: int = Body(..., description="会话ID"),
-    model_name: str = Body(..., description="模型名称", enum=list(MODEL_CONFIGS.keys()))
-):
-    """
-    创建备忘录
-    
-    当用户输入 "记一下" 或 "m" 时，触发此接口，提取上一轮对话的关键信息并保存为备忘录。
-    """
-    try:
-        # 检查会话是否存在
-        session = get_chat_session(session_id)
-        if not session:
-            raise HTTPException(status_code=404, detail=f"会话不存在: {session_id}")
-        
-        # 获取会话的所有消息
-        messages = get_chat_messages(session_id)
-        if len(messages) < 2:
-            raise HTTPException(status_code=400, detail="会话消息不足，无法创建备忘录")
-        
-        # 获取上一轮消息（用户消息和AI回复）
-        last_messages = messages[-2:]
-        user_message = None
-        ai_message = None
-        
-        for msg in last_messages:
-            if msg['role'] == 'user':
-                user_message = msg
-            elif msg['role'] == 'assistant':
-                ai_message = msg
-        
-        if not user_message or not ai_message:
-            raise HTTPException(status_code=400, detail="无法找到上一轮对话消息")
-        
-        # 构建分析提示
-        analysis_prompt = f"""
-你是一个专业的对话分析助手。请将以下原始对话记录，按话题转换成一个清晰的列表。
-每个列表项包含：主题、用户问题/陈述、AI回复的核心要点。
-确保提取所有技术术语、方法、结论和推荐资源。
-
-**对话记录：**
-用户：{user_message['content']}
-AI：{ai_message['content']}
-
-**输出格式要求（必须严格遵守）：**
-{{
-  "topics": [
-    {{
-      "topic": "主题名称",
-      "user_question": "用户的问题或陈述",
-      "ai_key_points": [
-        "要点1",
-        "要点2"
-      ],
-      "technical_terms": ["术语1", "术语2"],
-      "methods": ["方法1"],
-      "conclusions": ["结论1"],
-      "resources": ["资源1"]
-    }}
-  ]
-}}
-
-**重要：**
-- 必须返回有效的 JSON 格式
-- 必须使用上述字段名
-- 必须包含 "topics" 字段
-- 不要返回任何其他格式或解释文本
-- 只返回 JSON，不要包含其他任何内容
-        """
-        
-        # 使用大模型提取关键信息
-        analysis_result = llm_service.generate_completion(model_name, analysis_prompt)
-        
-        # 清理结果
-        if analysis_result.startswith('```json'):
-            analysis_result = analysis_result[7:]
-        if analysis_result.startswith('```'):
-            analysis_result = analysis_result[3:]
-        if analysis_result.endswith('```'):
-            analysis_result = analysis_result[:-3]
-        analysis_result = analysis_result.strip()
-        
-        # 解析 JSON
-        try:
-            analysis_data = json.loads(analysis_result)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="大模型返回的结果不是有效的 JSON 格式")
-        
-        # 保存备忘录
-        memo_id = create_memo_message(session_id, user_message['id'], json.dumps(analysis_data, ensure_ascii=False))
-        
-        return {
-            "memo_id": memo_id,
-            "session_id": session_id,
-            "message": "备忘录创建成功",
-            "analysis": analysis_data
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"创建备忘录失败: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"创建备忘录失败: {str(e)}")
+# 备忘录查询和删除接口
 
 @router.get("/memos", response_model=List[Dict[str, Any]])
 async def list_memos():
@@ -493,3 +572,23 @@ async def delete_memo(memo_id: int):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"删除备忘录失败: {str(e)}")
+
+@router.get("/memos/session/{session_id}", response_model=List[Dict[str, Any]])
+async def list_memos_by_session(session_id: int):
+    """
+    获取指定会话的备忘录列表
+    
+    返回指定会话的所有备忘录。
+    """
+    try:
+        memos = get_memo_messages_by_session(session_id)
+        # 解析每个备忘录的 content 字段
+        for memo in memos:
+            try:
+                memo['analysis'] = json.loads(memo['content'])
+            except json.JSONDecodeError:
+                memo['analysis'] = None
+        return memos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取会话备忘录失败: {str(e)}")
+

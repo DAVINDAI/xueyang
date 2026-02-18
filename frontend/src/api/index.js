@@ -174,4 +174,12 @@ export const chatApi = {
   deleteMemo: (memoId) => api.delete(`/chat/memos/${memoId}`)
 }
 
+// 搜索API
+export const searchApi = {
+  search: (query) => api.post('/search', { query })
+}
+
+// 为了方便在组件中直接使用
+api.search = (query) => api.post('/search', { query })
+
 export default api
