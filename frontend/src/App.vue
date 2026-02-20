@@ -8,6 +8,7 @@
         <router-link to="/details" class="nav-link">详情查看</router-link>
         <router-link to="/chat" class="nav-link">大模型聊天</router-link>
         <router-link to="/memo" class="nav-link">备忘录</router-link>
+        <router-link to="/resume" class="nav-link">简历优化</router-link>
       </nav>
       <SearchBar />
     </header>

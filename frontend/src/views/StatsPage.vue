@@ -31,10 +31,33 @@
       </div>
     </div>
   </div>
+
+  <div class="celebration-modal" v-if="showCelebration">
+    <div class="confetti-container">
+      <div class="confetti" v-for="n in 50" :key="n"></div>
+    </div>
+    
+    <div class="celebration-content">
+      <div class="emoji-large">🎉</div>
+      <h2>太棒了！</h2>
+      <p>你刚刚发现了：{{ discovery }}</p>
+      <p class="encouragement">{{ encouragement }}</p>
+      
+      <div class="achievement-badge">
+        <span class="badge-emoji">🏆</span>
+        <span class="badge-text">探索者徽章</span>
+      </div>
+      
+      <button class="continue-btn" @click="continueExploring">
+        <span>继续探索</span>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { statsApi } from '../api'
 import * as echarts from 'echarts'
 
@@ -44,6 +67,10 @@ const modelChartRef = ref(null)
 const dailyChartRef = ref(null)
 const modelChart = ref(null)
 const dailyChart = ref(null)
+const showCelebration = ref(false)
+const discovery = ref('统计数据的奥秘！')
+const encouragement = ref('继续探索，发现更多精彩！')
+const colors = ['#8b5cf6', '#0ea5e9', '#f59e0b', '#10b981', '#ef4444']
 
 // 计算模型数量
 const modelCount = computed(() => {
@@ -141,6 +168,27 @@ const initDailyChart = () => {
   }
 }
 
+// 动态创建五彩纸屑
+const createConfetti = () => {
+  nextTick(() => {
+    const confettiContainer = document.querySelector('.confetti-container')
+    if (confettiContainer) {
+      colors.forEach(color => {
+        for (let i = 0; i < 10; i++) {
+          const confetti = document.createElement('div')
+          confetti.className = 'confetti'
+          confetti.style.left = `${Math.random() * 100}%`
+          confetti.style.top = `${Math.random() * 100}%`
+          confetti.style.setProperty('--color', color)
+          confetti.style.animationDuration = `${Math.random() * 3 + 2}s`
+          confetti.style.animationDelay = `${Math.random() * 2}s`
+          confettiContainer.appendChild(confetti)
+        }
+      })
+    }
+  })
+}
+
 // 加载数据
 const loadStatsData = async () => {
   try {
@@ -161,18 +209,27 @@ const handleResize = () => {
   dailyChart.value?.resize()
 }
 
+// 继续探索
+const continueExploring = () => {
+  showCelebration.value = false
+}
+
 // 生命周期钩子
 onMounted(() => {
   loadStatsData()
   window.addEventListener('resize', handleResize)
+  
+  // 显示庆祝模态框
+  showCelebration.value = true
+  createConfetti()
 })
 
 // 组件卸载时清理
-const onUnmounted = () => {
+onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   modelChart.value?.dispose()
   dailyChart.value?.dispose()
-}
+})
 </script>
 
 <style scoped>
@@ -263,6 +320,146 @@ const onUnmounted = () => {
   
   .chart {
     height: 300px;
+  }
+}
+
+.celebration-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease;
+}
+
+.confetti-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--color);
+  border-radius: 2px;
+  animation: fall linear infinite;
+}
+
+.celebration-content {
+  text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  position: relative;
+  animation: bounceIn 0.8s ease;
+}
+
+.emoji-large {
+  font-size: 60px;
+  animation: pulse 2s infinite;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #7c3aed;
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.encouragement {
+  color: #6d28d9;
+  font-size: 18px;
+  margin: 20px 0;
+  font-style: italic;
+}
+
+.achievement-badge {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  padding: 10px 20px;
+  border-radius: 50px;
+  margin: 25px 0;
+  animation: wiggle 2s infinite;
+}
+
+.badge-emoji {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.badge-text {
+  color: #92400e;
+  font-weight: 600;
+}
+
+.continue-btn {
+  background: linear-gradient(135deg, #8b5cf6, #0ea5e9);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px auto 0;
+  transition: all 0.3s ease;
+}
+
+.continue-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+}
+
+.arrow {
+  animation: slide 1s infinite;
+}
+
+/* 动画定义 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes slide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
   }
 }
 </style>

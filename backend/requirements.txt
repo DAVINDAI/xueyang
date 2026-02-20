@@ -21,6 +21,9 @@ pydantic-settings>=2.0.0  # 配置管理
 # 数据库
 # SQLite是Python标准库的一部分，无需额外安装
 
+# PDF解析
+PyPDF2>=3.0.0  # PDF文件解析
+
 # LangGraph
 langgraph>=0.2.0  # 状态管理
 tavily-python>=0.5.0  # Tavily搜索API

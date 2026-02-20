@@ -62,6 +62,9 @@
             <el-button type="primary" size="small" @click.stop="viewSession(memo.originalSessionId)">
               查看会话
             </el-button>
+            <el-button type="success" size="small" @click.stop="jumpToMessage(memo.originalSessionId, memo.originalMessageId)">
+              跳转到对话
+            </el-button>
           </div>
         </el-card>
       </div>
@@ -115,11 +118,20 @@ const loadMemos = async () => {
 }
 
 // 查看会话
-const viewSession = (sessionId) => {
+const viewSession = (sessionId, messageId = null) => {
+  const query = { sessionId }
+  if (messageId) {
+    query.messageId = messageId
+  }
   router.push({ 
     path: '/chat',
-    query: { sessionId }
+    query
   })
+}
+
+// 跳转到指定对话
+const jumpToMessage = (sessionId, messageId) => {
+  viewSession(sessionId, messageId)
 }
 
 // 删除备忘录

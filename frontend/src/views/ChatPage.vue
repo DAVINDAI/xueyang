@@ -98,6 +98,7 @@
             <div
               v-for="message in messages"
               :key="message.id"
+              :id="`message-${message.id}`"
               class="message-item"
               :class="message.role"
             >
@@ -384,6 +385,16 @@ const loadSessions = async () => {
   }
 }
 
+// 跳转到指定消息
+const scrollToMessage = (messageId) => {
+  nextTick(() => {
+    const element = document.getElementById(`message-${messageId}`)
+    if (element && chatContentRef.value) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+}
+
 // 选择会话
 const selectSession = async (session) => {
   activeSession.value = session
@@ -392,7 +403,17 @@ const selectSession = async (session) => {
   try {
     const data = await chatApi.getMessages(session.id)
     messages.value = data
-    scrollToBottom()
+    
+    // 检查是否有消息ID需要跳转
+    const messageId = route.query.messageId
+    if (messageId) {
+      nextTick(() => {
+        scrollToMessage(messageId)
+      })
+    } else {
+      scrollToBottom()
+    }
+    
     highlightAllCodeBlocks()
   } catch (error) {
     console.error('加载消息失败:', error)
@@ -472,13 +493,6 @@ const sendMessage = async () => {
   const message = inputMessage.value.trim()
   if (!message || !activeSession.value || isLoading.value) return
   
-  // 检查是否为备忘录指令
-  if (message === '记一下' || message === 'm') {
-    // 触发备忘录功能
-    await handleMemoCommand()
-    return
-  }
-  
   isLoading.value = true
   const tempInput = inputMessage.value
   inputMessage.value = ''
@@ -553,41 +567,6 @@ const sendMessage = async () => {
     // 失败时移除临时添加的消息
     messages.value = messages.value.filter(m => m.id !== tempUserMessage.id && m.id !== tempAiMessage.id)
     inputMessage.value = tempInput
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// 处理备忘录指令
-const handleMemoCommand = async () => {
-  if (!activeSession.value) return
-  
-  isLoading.value = true
-  inputMessage.value = ''
-  
-  try {
-    // 发送备忘录请求
-    const response = await chatApi.createMemo(activeSession.value.id, selectedModel.value)
-    
-    // 显示成功消息
-    ElMessage({
-      message: '备忘录创建成功',
-      type: 'success'
-    })
-    
-    // 在聊天界面添加备忘录创建成功的消息
-    const memoSuccessMessage = {
-      id: Date.now(),
-      role: 'assistant',
-      content: `已创建备忘录：${response.analysis.topics[0]?.topic || '未命名主题'}`,
-      createdAt: new Date().toISOString(),
-      tokenCount: 0
-    }
-    messages.value.push(memoSuccessMessage)
-    autoScrollToBottom()
-  } catch (error) {
-    console.error('创建备忘录失败:', error)
-    ElMessage.error('创建备忘录失败：' + (error.response?.data?.detail || error.message))
   } finally {
     isLoading.value = false
   }

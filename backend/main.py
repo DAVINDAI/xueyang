@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import stats, details, chat, search
-from app.services.db import init_database
+from app.api import stats, details, chat, search, resume
+from app.services.db import init_database, add_indexes_to_existing_db
 import os
 from dotenv import load_dotenv
 
@@ -38,11 +38,13 @@ app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
 app.include_router(details.router, prefix="/api/details", tags=["details"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(search.router, prefix="/api", tags=["search"])
+app.include_router(resume.router, prefix="/api", tags=["resume"])
 
 # 初始化数据库
 @app.on_event("startup")
 async def startup_event():
     init_database()
+    add_indexes_to_existing_db()
 
 # 根路径
 @app.get("/")

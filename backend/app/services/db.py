@@ -67,6 +67,12 @@ def init_database():
     )
     ''')
     
+    # 创建索引 - 提升查询性能
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_session_id ON chat_message(session_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_created_at ON chat_message(created_at DESC)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_original_session_id ON memo_message(original_session_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_created_at ON memo_message(created_at DESC)')
+    
     # 提交事务
     conn.commit()
     conn.close()
@@ -357,3 +363,44 @@ def delete_memo_message(memo_id: int) -> bool:
     conn.commit()
     conn.close()
     return deleted
+
+def add_indexes_to_existing_db():
+    """为现有数据库添加索引（用于迁移）"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_session_id ON chat_message(session_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_created_at ON chat_message(created_at DESC)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_original_session_id ON memo_message(original_session_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_created_at ON memo_message(created_at DESC)')
+        conn.commit()
+        print("数据库索引添加成功")
+    except Exception as e:
+        print(f"添加索引失败: {e}")
+    finally:
+        conn.close()
+
+def search_chat_messages(keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
+    """搜索聊天消息内容"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 使用LIKE进行模糊搜索 - 虽然无法使用索引，但通过其他索引优化JOIN和排序
+    cursor.execute('''
+    SELECT cm.id, cm.session_id, cm.role, cm.content, cm.created_at, cs.session_name
+    FROM chat_message cm
+    JOIN chat_session cs ON cm.session_id = cs.id
+    WHERE cm.content LIKE ?
+    ORDER BY cm.created_at DESC
+    LIMIT ?
+    ''', (f'%{keyword}%', limit))
+    
+    results = [dict(row) for row in cursor.fetchall()]
+    
+    # 转换时间格式
+    for result in results:
+        result['created_at'] = convert_db_time_to_iso(result['created_at'])
+    
+    conn.close()
+    return results

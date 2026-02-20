@@ -10,9 +10,9 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/stats',
-      name: 'stats',
-      component: () => import('../views/StatsPage.vue')
+      path: '/chat',
+      name: 'chat',
+      component: () => import('../views/ChatPage.vue')
     },
     {
       path: '/details',
@@ -20,14 +20,19 @@ const router = createRouter({
       component: () => import('../views/DetailsPage.vue')
     },
     {
-      path: '/chat',
-      name: 'chat',
-      component: () => import('../views/ChatPage.vue')
-    },
-    {
       path: '/memo',
       name: 'memo',
       component: () => import('../views/MemoPage.vue')
+    },
+    {
+      path: '/stats',
+      name: 'stats',
+      component: () => import('../views/StatsPage.vue')
+    },
+    {
+      path: '/resume',
+      name: 'resume',
+      component: () => import('../views/ResumeOptimizer.vue')
     }
   ]
 })

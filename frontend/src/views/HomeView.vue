@@ -26,6 +26,13 @@
         <p>使用GLM 5和Qwen Plus等先进大语言模型进行智能对话，支持上下文管理和自动压缩。</p>
         <router-link to="/chat" class="btn">开始聊天</router-link>
       </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>简历优化</h3>
+        <p>上传PDF简历，根据职位描述智能优化简历内容，提供面试准备建议，助你成功获得面试机会。</p>
+        <router-link to="/resume" class="btn">优化简历</router-link>
+      </div>
     </div>
     
     <div class="tech-stack">
