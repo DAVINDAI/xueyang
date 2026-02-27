@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/resume',
       name: 'resume',
       component: () => import('../views/ResumeOptimizer.vue')
+    },
+    {
+      path: '/resume/list',
+      name: 'resumeList',
+      component: () => import('../views/ResumeList.vue')
     }
   ]
 })

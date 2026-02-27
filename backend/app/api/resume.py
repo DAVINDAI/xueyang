@@ -1,7 +1,11 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from app.services.pdf_processor import PDFProcessor
 from app.services.resume_optimizer import ResumeOptimizer
+from app.services.db import get_resume_optimizations, get_resume_optimization, delete_resume_optimization
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/resume", tags=["resume"])
 
@@ -60,7 +64,7 @@ async def optimize_resume(
         return {"data": result}
         
     except Exception as e:
-        print(f"简历优化失败: {e}")
+        logger.error(f"简历优化失败: {e}")
         raise HTTPException(status_code=500, detail="简历优化失败，请稍后重试")
 
 @router.get("/download/{resume_id}")
@@ -77,3 +81,65 @@ async def download_resume(resume_id: str):
     # 实现下载逻辑
     # 注意：这里需要根据实际存储方式实现
     raise HTTPException(status_code=501, detail="下载功能开发中")
+
+@router.get("/optimizations")
+async def get_resume_optimization_list(limit: int = 100):
+    """
+    获取所有简历优化结果
+    
+    Args:
+        limit: 结果数量限制
+        
+    Returns:
+        List[Dict]: 优化结果列表
+    """
+    try:
+        optimizations = get_resume_optimizations(limit=limit)
+        return {"data": optimizations}
+    except Exception as e:
+        logger.error(f"获取优化结果列表失败: {e}")
+        raise HTTPException(status_code=500, detail="获取优化结果列表失败")
+
+@router.get("/optimizations/{optimization_id}")
+async def get_single_resume_optimization(optimization_id: int):
+    """
+    获取单个简历优化结果
+    
+    Args:
+        optimization_id: 优化结果ID
+        
+    Returns:
+        Dict: 优化结果
+    """
+    try:
+        optimization = get_resume_optimization(optimization_id)
+        if not optimization:
+            raise HTTPException(status_code=404, detail="优化结果不存在")
+        return {"data": optimization}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取优化结果失败: {e}")
+        raise HTTPException(status_code=500, detail="获取优化结果失败")
+
+@router.delete("/optimizations/{optimization_id}")
+async def delete_single_resume_optimization(optimization_id: int):
+    """
+    删除简历优化结果
+    
+    Args:
+        optimization_id: 优化结果ID
+        
+    Returns:
+        Dict: 删除结果
+    """
+    try:
+        deleted = delete_resume_optimization(optimization_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="优化结果不存在")
+        return {"success": True, "message": "删除成功"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"删除优化结果失败: {e}")
+        raise HTTPException(status_code=500, detail="删除优化结果失败")

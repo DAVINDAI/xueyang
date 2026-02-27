@@ -1,9 +1,23 @@
 import sqlite3
 import os
 from typing import List, Dict, Any
+from contextlib import contextmanager
+import logging
 
 # 数据库文件路径
 db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'langgraph_data.db')
+
+# 配置日志
+logger = logging.getLogger(__name__)
+
+@contextmanager
+def db_connection():
+    """数据库连接上下文管理器，确保连接正确关闭"""
+    conn = get_db_connection()
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 # 辅助函数：转换数据库时间字符串为ISO格式（带Z表示UTC）
 def convert_db_time_to_iso(db_time_str):
@@ -67,11 +81,27 @@ def init_database():
     )
     ''')
     
+    # 创建简历优化结果表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS resume_optimization (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        job_title TEXT NOT NULL,
+        job_description TEXT NOT NULL,
+        industry_analysis TEXT,
+        optimized_resume TEXT,
+        optimization_suggestions TEXT,  -- JSON格式
+        matching_analysis TEXT,         -- JSON格式
+        interview_preparation TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
     # 创建索引 - 提升查询性能
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_session_id ON chat_message(session_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_created_at ON chat_message(created_at DESC)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_original_session_id ON memo_message(original_session_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_created_at ON memo_message(created_at DESC)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_resume_optimization_created_at ON resume_optimization(created_at DESC)')
     
     # 提交事务
     conn.commit()
@@ -375,9 +405,9 @@ def add_indexes_to_existing_db():
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_original_session_id ON memo_message(original_session_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_created_at ON memo_message(created_at DESC)')
         conn.commit()
-        print("数据库索引添加成功")
+        logger.info("数据库索引添加成功")
     except Exception as e:
-        print(f"添加索引失败: {e}")
+        logger.error(f"添加索引失败: {e}")
     finally:
         conn.close()
 
@@ -404,3 +434,115 @@ def search_chat_messages(keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
     
     conn.close()
     return results
+
+# 简历优化结果操作
+def save_resume_optimization(job_title: str, job_description: str, industry_analysis: str, 
+                            optimized_resume: str, optimization_suggestions: list, 
+                            matching_analysis: dict, interview_preparation: str) -> int:
+    """保存简历优化结果"""
+    import json
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 转换列表和字典为JSON字符串
+    optimization_suggestions_json = json.dumps(optimization_suggestions) if optimization_suggestions else '[]'
+    matching_analysis_json = json.dumps(matching_analysis) if matching_analysis else '{}'
+    
+    cursor.execute('''
+    INSERT INTO resume_optimization (job_title, job_description, industry_analysis, 
+                                   optimized_resume, optimization_suggestions, 
+                                   matching_analysis, interview_preparation)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (job_title, job_description, industry_analysis, 
+         optimized_resume, optimization_suggestions_json, 
+         matching_analysis_json, interview_preparation))
+    
+    optimization_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return optimization_id
+
+def get_resume_optimizations(limit: int = 100) -> List[Dict[str, Any]]:
+    """获取所有简历优化结果"""
+    import json
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT id, job_title, job_description, industry_analysis, 
+           optimized_resume, optimization_suggestions, 
+           matching_analysis, interview_preparation, created_at
+    FROM resume_optimization
+    ORDER BY created_at DESC
+    LIMIT ?
+    ''', (limit,))
+    
+    optimizations = []
+    for row in cursor.fetchall():
+        opt = dict(row)
+        # 转换时间格式
+        opt['created_at'] = convert_db_time_to_iso(opt['created_at'])
+        # 解析JSON字段
+        if opt.get('optimization_suggestions'):
+            try:
+                opt['optimization_suggestions'] = json.loads(opt['optimization_suggestions'])
+            except:
+                opt['optimization_suggestions'] = []
+        if opt.get('matching_analysis'):
+            try:
+                opt['matching_analysis'] = json.loads(opt['matching_analysis'])
+            except:
+                opt['matching_analysis'] = {}
+        optimizations.append(opt)
+    
+    conn.close()
+    return optimizations
+
+def get_resume_optimization(optimization_id: int) -> Dict[str, Any]:
+    """获取单个简历优化结果"""
+    import json
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT id, job_title, job_description, industry_analysis, 
+           optimized_resume, optimization_suggestions, 
+           matching_analysis, interview_preparation, created_at
+    FROM resume_optimization
+    WHERE id = ?
+    ''', (optimization_id,))
+    
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    
+    opt = dict(row)
+    # 转换时间格式
+    opt['created_at'] = convert_db_time_to_iso(opt['created_at'])
+    # 解析JSON字段
+    if opt.get('optimization_suggestions'):
+        try:
+            opt['optimization_suggestions'] = json.loads(opt['optimization_suggestions'])
+        except:
+            opt['optimization_suggestions'] = []
+    if opt.get('matching_analysis'):
+        try:
+            opt['matching_analysis'] = json.loads(opt['matching_analysis'])
+        except:
+            opt['matching_analysis'] = {}
+    
+    conn.close()
+    return opt
+
+def delete_resume_optimization(optimization_id: int) -> bool:
+    """删除简历优化结果"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('DELETE FROM resume_optimization WHERE id = ?', (optimization_id,))
+    deleted = cursor.rowcount > 0
+    
+    conn.commit()
+    conn.close()
+    return deleted

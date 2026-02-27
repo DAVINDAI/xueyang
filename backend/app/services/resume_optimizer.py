@@ -2,7 +2,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from typing import Dict, Optional, Tuple
 import re
 import json
+import threading
 from app.services.llm import llm_service
+from app.services.db import save_resume_optimization
 
 class ResumeOptimizer:
     """
@@ -17,6 +19,28 @@ class ResumeOptimizer:
             model_name: 使用的大模型名称
         """
         self.model_name = model_name
+    
+    def _extract_job_title(self, job_description: str) -> str:
+        """
+        从职位描述中提取职位标题
+        
+        Args:
+            job_description: 职位描述
+            
+        Returns:
+            str: 职位标题
+        """
+        # 简单的提取逻辑：取第一行或包含职位关键字的行
+        lines = job_description.strip().split('\n')
+        for line in lines:
+            line = line.strip()
+            if line and len(line) > 3 and len(line) < 100:
+                # 检查是否包含职位相关关键字
+                job_keywords = ['工程师', '开发', '程序员', '设计师', '产品', '运营', '经理', '主管', '专员']
+                if any(keyword in line for keyword in job_keywords):
+                    return line
+        # 如果没有找到，返回默认标题
+        return "未知职位"
     
     def optimize_resume(self, resume_content: str, job_description: str) -> Dict:
         """
@@ -46,6 +70,26 @@ class ResumeOptimizer:
             "matchingAnalysis": optimized_resume_data.get('matching_analysis', {}),
             "interviewPreparation": interview_prep
         }
+        
+        # 异步保存结果到数据库
+        def save_to_db():
+            try:
+                job_title = self._extract_job_title(job_description)
+                save_resume_optimization(
+                    job_title=job_title,
+                    job_description=job_description,
+                    industry_analysis=result.get('industryAnalysis', ''),
+                    optimized_resume=result.get('optimizedResume', ''),
+                    optimization_suggestions=result.get('optimizationSuggestions', []),
+                    matching_analysis=result.get('matchingAnalysis', {}),
+                    interview_preparation=result.get('interviewPreparation', '')
+                )
+                print(f"简历优化结果已保存到数据库: {job_title}")
+            except Exception as e:
+                print(f"保存简历优化结果到数据库失败: {e}")
+        
+        # 启动线程保存，不阻塞主流程
+        threading.Thread(target=save_to_db, daemon=True).start()
         
         return result
     

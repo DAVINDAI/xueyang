@@ -27,3 +27,6 @@ PyPDF2>=3.0.0  # PDF文件解析
 # LangGraph
 langgraph>=0.2.0  # 状态管理
 tavily-python>=0.5.0  # Tavily搜索API
+
+# 网页抓取
+playwright>=1.40.0  # 浏览器自动化
