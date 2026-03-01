@@ -80,3 +80,4 @@ lang_smith.py
 test_*.py
 /chat.py
 /start.py
+/env.sh
