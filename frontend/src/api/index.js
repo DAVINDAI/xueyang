@@ -40,6 +40,13 @@ api.interceptors.request.use(
     if (config.data && typeof config.data === 'object') {
       config.data = convertObjectKeys(config.data, camelToSnake)
     }
+    
+    // 添加Authorization头
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    
     return config
   },
   error => {
@@ -59,6 +66,14 @@ api.interceptors.response.use(
   error => {
     // 统一错误处理
     console.error('API Error:', error)
+    
+    // 处理401错误（token过期或无效）
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token')
+      // 跳转到登录页面
+      window.location.href = '/login'
+    }
+    
     return Promise.reject(error)
   }
 )

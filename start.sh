@@ -89,6 +89,14 @@ start_backend() {
     # 日志轮转
     rotate_log "$BACKEND_LOG"
     
+    # 生成SECRET_KEY（如果不存在）
+    if [ -z "$SECRET_KEY" ]; then
+        export SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+        echo -e "${GREEN}已生成SECRET_KEY: $SECRET_KEY${NC}"
+    else
+        echo -e "${GREEN}使用现有的SECRET_KEY${NC}"
+    fi
+    
     # 检查虚拟环境（先检查项目根目录，再检查backend目录）
     if [ -d "$PROJECT_ROOT/venv" ]; then
         source "$PROJECT_ROOT/venv/bin/activate"

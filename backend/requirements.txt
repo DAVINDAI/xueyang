@@ -9,6 +9,7 @@ openai>=1.0.0  # 用于OpenAI兼容接口
 tiktoken>=0.5.0  # 用于token计算
 python-dotenv>=1.0.0  # 环境变量管理
 requests>=2.31.0  # HTTP请求
+PyJWT>=2.6.0  # JWT认证
 
 # Web框架
 fastapi>=0.100.0  # API框架
