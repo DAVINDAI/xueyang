@@ -67,7 +67,6 @@ deepseek_chats/
 qwen_chats/
 yuanbao_chats/
 chat_analysis_results*.json
-*.png
 
 # Analysis scripts
 analyze_*.py
