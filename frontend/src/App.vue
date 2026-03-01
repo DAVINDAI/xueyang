@@ -12,6 +12,10 @@
         <router-link to="/resume/list" class="nav-link">优化历史</router-link>
       </nav>
       <SearchBar />
+      <div v-if="isLoggedIn" class="user-info">
+        <span class="user-phone">{{ userPhone }}</span>
+        <el-button type="danger" size="small" @click="handleLogout">注销</el-button>
+      </div>
     </header>
     <main class="app-main">
       <router-view v-slot="{ Component }">
@@ -27,8 +31,41 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 import SearchBar from './components/SearchBar.vue';
-// App组件
+import { logout, isLoggedIn } from './api/authApi';
+
+const router = useRouter();
+const userPhone = ref('');
+
+const isUserLoggedIn = computed(() => isLoggedIn());
+
+const getUserPhone = () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userPhone.value = payload.sub || '';
+    } catch (error) {
+      console.error('解析token失败:', error);
+    }
+  }
+};
+
+const handleLogout = () => {
+  logout();
+  userPhone.value = '';
+  ElMessage.success('注销成功');
+  router.push('/login');
+};
+
+onMounted(() => {
+  if (isUserLoggedIn.value) {
+    getUserPhone();
+  }
+});
 </script>
 
 <style>
@@ -77,6 +114,19 @@ body {
 
 .search-bar {
   flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-phone {
+  color: white;
+  font-size: 14px;
 }
 
 .nav-link {
