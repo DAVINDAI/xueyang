@@ -14,6 +14,7 @@ PyJWT>=2.6.0  # JWT认证
 # Web框架
 fastapi>=0.100.0  # API框架
 uvicorn>=0.23.0  # ASGI服务器
+python-multipart>=0.0.6  # 表单数据处理
 
 # 数据处理
 pydantic>=2.0.0  # 数据验证

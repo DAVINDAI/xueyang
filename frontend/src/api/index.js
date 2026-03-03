@@ -114,11 +114,20 @@ export const chatApi = {
       const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
       console.log('开始流式请求，模型:', modelName)
       
+      // 获取token
+      const token = localStorage.getItem('token')
+      const headers = {
+        'Content-Type': 'application/json'
+      }
+      
+      // 添加Authorization头
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+      
       const response = await fetch(`${baseURL}/chat/completion/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: headers,
         body: JSON.stringify({
           session_id: sessionId,
           model_name: modelName,
@@ -127,6 +136,12 @@ export const chatApi = {
       })
       
       if (!response.ok) {
+        // 处理401错误（token过期或无效）
+        if (response.status === 401) {
+          localStorage.removeItem('token')
+          window.location.href = '/login'
+          return
+        }
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
