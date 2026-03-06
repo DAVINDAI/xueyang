@@ -22,12 +22,14 @@ stages:
         commands:
           - python3 -m pip install --upgrade pip
           - pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - cd backend
           - pip3 install -r requirements.txt
           - python3 ./main.py
         artifacts:
           - name: BUILD_ARTIFACT
             path:
               - ./
+        strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
         displayName: 上传制品
