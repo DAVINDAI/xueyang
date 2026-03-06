@@ -1,0 +1,34 @@
+# LangChain核心框架
+langchain>=0.3.0
+langchain-openai>=0.1.0
+
+# 大模型相关
+openai>=1.0.0  # 用于OpenAI兼容接口
+
+# 工具库
+tiktoken>=0.5.0  # 用于token计算
+python-dotenv>=1.0.0  # 环境变量管理
+requests>=2.31.0  # HTTP请求
+PyJWT>=2.6.0  # JWT认证
+
+# Web框架
+fastapi>=0.100.0  # API框架
+uvicorn>=0.23.0  # ASGI服务器
+python-multipart>=0.0.6  # 表单数据处理
+
+# 数据处理
+pydantic>=2.0.0  # 数据验证
+pydantic-settings>=2.0.0  # 配置管理
+
+# 数据库
+# SQLite是Python标准库的一部分，无需额外安装
+
+# PDF解析
+PyPDF2>=3.0.0  # PDF文件解析
+
+# LangGraph
+langgraph>=0.2.0  # 状态管理
+tavily-python>=0.5.0  # Tavily搜索API
+
+# 网页抓取
+playwright>=1.40.0  # 浏览器自动化
