@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     image: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/backend:latest
