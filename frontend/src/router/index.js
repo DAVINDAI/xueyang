@@ -51,6 +51,12 @@ const router = createRouter({
       name: 'resumeList',
       component: () => import('../views/ResumeList.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/notes',
+      name: 'notes',
+      component: () => import('../views/NotesPage.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

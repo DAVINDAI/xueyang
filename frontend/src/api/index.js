@@ -209,6 +209,15 @@ export const searchApi = {
   search: (query) => api.post('/search', { query })
 }
 
+// 笔记API
+export const notesApi = {
+  createNote: (title, content) => api.post('/notes', { title, content }),
+  listNotes: () => api.get('/notes'),
+  getNote: (noteId) => api.get(`/notes/${noteId}`),
+  updateNote: (noteId, title, content) => api.put(`/notes/${noteId}`, { title, content }),
+  deleteNote: (noteId) => api.delete(`/notes/${noteId}`)
+}
+
 // 为了方便在组件中直接使用
 api.search = (query) => api.post('/search', { query })
 

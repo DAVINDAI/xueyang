@@ -96,12 +96,26 @@ def init_database():
     )
     ''')
     
+    # 创建笔记表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        user_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
     # 创建索引 - 提升查询性能
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_session_id ON chat_message(session_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_created_at ON chat_message(created_at DESC)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_original_session_id ON memo_message(original_session_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_memo_message_created_at ON memo_message(created_at DESC)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_resume_optimization_created_at ON resume_optimization(created_at DESC)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(created_at DESC)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes(updated_at DESC)')
     
     # 提交事务
     conn.commit()
@@ -543,6 +557,88 @@ def delete_resume_optimization(optimization_id: int) -> bool:
     cursor.execute('DELETE FROM resume_optimization WHERE id = ?', (optimization_id,))
     deleted = cursor.rowcount > 0
     
+    conn.commit()
+    conn.close()
+    return deleted
+
+# 笔记操作
+def create_note(title: str, content: str, user_id: int = None) -> int:
+    """创建笔记"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO notes (title, content, user_id) 
+    VALUES (?, ?, ?)
+    ''', (title, content, user_id))
+    note_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return note_id
+
+def get_notes(user_id: int = None) -> List[Dict[str, Any]]:
+    """获取笔记列表"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    if user_id:
+        cursor.execute('''
+        SELECT id, title, content, user_id, created_at, updated_at 
+        FROM notes 
+        WHERE user_id = ? 
+        ORDER BY updated_at DESC
+        ''', (user_id,))
+    else:
+        cursor.execute('''
+        SELECT id, title, content, user_id, created_at, updated_at 
+        FROM notes 
+        ORDER BY updated_at DESC
+        ''')
+    
+    notes = [dict(row) for row in cursor.fetchall()]
+    # 转换时间格式
+    for note in notes:
+        note['created_at'] = convert_db_time_to_iso(note['created_at'])
+        note['updated_at'] = convert_db_time_to_iso(note['updated_at'])
+    conn.close()
+    return notes
+
+def get_note(note_id: int) -> Dict[str, Any]:
+    """获取单个笔记"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT id, title, content, user_id, created_at, updated_at 
+    FROM notes 
+    WHERE id = ?
+    ''', (note_id,))
+    row = cursor.fetchone()
+    note = dict(row) if row else None
+    if note:
+        note['created_at'] = convert_db_time_to_iso(note['created_at'])
+        note['updated_at'] = convert_db_time_to_iso(note['updated_at'])
+    conn.close()
+    return note
+
+def update_note(note_id: int, title: str, content: str) -> bool:
+    """更新笔记"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE notes 
+    SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP 
+    WHERE id = ?
+    ''', (title, content, note_id))
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+def delete_note(note_id: int) -> bool:
+    """删除笔记"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))
+    deleted = cursor.rowcount > 0
     conn.commit()
     conn.close()
     return deleted

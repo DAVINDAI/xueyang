@@ -10,6 +10,7 @@
         <router-link to="/memo" class="nav-link">备忘录</router-link>
         <router-link to="/resume" class="nav-link">简历优化</router-link>
         <router-link to="/resume/list" class="nav-link">优化历史</router-link>
+        <router-link to="/notes" class="nav-link">笔记管理</router-link>
       </nav>
       <SearchBar />
       <div v-if="isLoggedIn" class="user-info">
