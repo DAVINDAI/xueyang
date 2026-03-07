@@ -45,7 +45,7 @@ stages:
         type: account
         repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
         username: davindai@hotmail.com
-        password: Pp70027784
+        password: Pp710027784
         tag: ${GITEE_PIPELINE_BUILD_NUMBER}
         dockerfile: backend/Dockerfile
         context: backend
