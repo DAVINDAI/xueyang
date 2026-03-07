@@ -101,6 +101,8 @@ stages:
           - cd /opt/xueyang
           - ''
           - tar zxvf ~/gitee_go/deploy/output.tar.gz -C /opt/xueyang/
+          - ''
+          - mv -f output/* .
           - ls -la /opt/xueyang/
           - ''
           - '# sh /home/admin/app/deploy.sh restart'
