@@ -48,7 +48,8 @@ stages:
           - '# pip install --user -r requirements.txt'
           - python --version
           - python --version
-          - ls -la mkdir output
+          - 'ls -la '
+          - mkdir output
           - 'cp server_release.sh output/ '
         artifacts:
           - name: BUILD_ARTIFACT
