@@ -57,6 +57,21 @@ stages:
         notify: []
         strategy:
           retry: '0'
+  - name: stage-9fbd3892
+    displayName: 未命名
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: publish@release_artifacts
+        name: publish_release_artifacts
+        displayName: 发布
+        dependArtifact: output
+        version: 1.0.0.0
+        autoIncrement: true
+        notify: []
+        strategy:
+          retry: '0'
   - name: stage-e5cf2c55
     displayName: 部署
     strategy: naturally
