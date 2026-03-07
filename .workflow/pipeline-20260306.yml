@@ -15,8 +15,8 @@ stages:
     executor: []
     steps:
       - step: build@docker
-        name: build_docker
-        displayName: 镜像构建
+        name: backend_build_docker
+        displayName: backend镜像构建
         type: account
         repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
         username: davindai@hotmail.com
@@ -25,7 +25,25 @@ stages:
         dockerfile: backend/Dockerfile
         context: backend
         artifacts: []
-        isCache: false
+        isCache: true
+        processorType:
+          - amd64
+        parameter: {}
+        notify: []
+        strategy:
+          retry: '0'
+      - step: build@docker
+        name: frontend_build_docker
+        displayName: frontend镜像构建
+        type: account
+        repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
+        username: davindai@hotmail.com
+        password: Pp710027784
+        tag: ${GITEE_PIPELINE_BUILD_NUMBER}
+        dockerfile: ./frontend/Dockerfile
+        context: ''
+        artifacts: []
+        isCache: true
         processorType:
           - amd64
         parameter: {}
