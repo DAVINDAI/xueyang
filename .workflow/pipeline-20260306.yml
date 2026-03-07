@@ -8,33 +8,6 @@ triggers:
       precise:
         - main
 stages:
-  - name: stage-1e13d033
-    displayName: 后端构建
-    strategy: naturally
-    trigger: auto
-    executor: []
-    steps:
-      - step: build@python
-        name: build_python
-        displayName: Python 构建
-        pythonVersion: '3.11'
-        commands:
-          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          - '# 可以使用pip下载依赖'
-          - '# pip install --user -r requirements.txt'
-          - pwd
-          - ls -la
-          - 'python --version  '
-          - mkdir output
-          - 'cp server_release.sh output/ '
-        artifacts:
-          - name: BUILD_ARTIFACT
-            path:
-              - ./output
-        caches: []
-        notify: []
-        strategy:
-          retry: '0'
   - name: stage-5fa4b636
     displayName: docker
     strategy: naturally
@@ -79,7 +52,7 @@ stages:
         strategy:
           retry: '0'
   - name: stage-2d75b6ed
-    displayName: 未命名
+    displayName: 打包
     strategy: naturally
     trigger: auto
     executor: []
