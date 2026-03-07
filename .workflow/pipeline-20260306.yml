@@ -51,6 +51,7 @@ stages:
           - 'ls -la '
           - mkdir output
           - 'cp server-deploy.sh output/ '
+          - 'cp docker-compose.yml output/ '
         artifacts:
           - name: BUILD_ARTIFACT
             path:
