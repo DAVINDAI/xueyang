@@ -17,18 +17,20 @@ stages:
       - step: build@python
         name: build_python
         displayName: Python 构建
-        pythonVersion: '3.9'
+        pythonVersion: '3.11'
         commands:
           - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
           - '# 可以使用pip下载依赖'
           - '# pip install --user -r requirements.txt'
           - pwd
           - ls -la
-          - python --version
+          - 'python --version  '
+          - mkdir output
+          - 'cp server_release.sh output/ '
         artifacts:
           - name: BUILD_ARTIFACT
             path:
-              - ./
+              - ./output
         caches: []
         notify: []
         strategy:
