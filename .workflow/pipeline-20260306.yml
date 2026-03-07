@@ -9,7 +9,7 @@ triggers:
         - main
 stages:
   - name: stage-1e13d033
-    displayName: 未命名
+    displayName: 后端构建
     strategy: naturally
     trigger: auto
     executor: []
@@ -30,6 +30,30 @@ stages:
             path:
               - ./
         caches: []
+        notify: []
+        strategy:
+          retry: '0'
+  - name: stage-5fa4b636
+    displayName: docker
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@docker
+        name: build_docker
+        displayName: 镜像构建
+        type: account
+        repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
+        username: davindai@hotmail.com
+        password: Pp70027784
+        tag: ${GITEE_PIPELINE_BUILD_NUMBER}
+        dockerfile: backend/Dockerfile
+        context: ''
+        artifacts: []
+        isCache: false
+        processorType:
+          - amd64
+        parameter: {}
         notify: []
         strategy:
           retry: '0'
