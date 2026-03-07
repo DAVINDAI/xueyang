@@ -58,7 +58,7 @@ stages:
         strategy:
           retry: '0'
   - name: stage-9fbd3892
-    displayName: 未命名
+    displayName: 发布
     strategy: naturally
     trigger: auto
     executor: []
