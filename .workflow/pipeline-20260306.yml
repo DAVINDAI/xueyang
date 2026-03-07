@@ -48,7 +48,7 @@ stages:
         password: Pp70027784
         tag: ${GITEE_PIPELINE_BUILD_NUMBER}
         dockerfile: backend/Dockerfile
-        context: ''
+        context: backend
         artifacts: []
         isCache: false
         processorType:
