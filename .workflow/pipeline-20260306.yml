@@ -9,7 +9,7 @@ triggers:
         - main
 stages:
   - name: stage-1e13d033
-    displayName: 后端构建
+    displayName: 测试
     strategy: naturally
     trigger: auto
     executor: []
