@@ -21,7 +21,7 @@ stages:
         repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
         username: davindai@hotmail.com
         password: Pp710027784
-        tag: ${GITEE_PIPELINE_BUILD_NUMBER}
+        tag: backend
         dockerfile: backend/Dockerfile
         context: backend
         artifacts: []
@@ -39,7 +39,7 @@ stages:
         repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
         username: davindai@hotmail.com
         password: Pp710027784
-        tag: ${GITEE_PIPELINE_BUILD_NUMBER}
+        tag: frontend
         dockerfile: ./frontend/Dockerfile
         context: ./frontend
         artifacts: []
