@@ -32,25 +32,6 @@ stages:
         notify: []
         strategy:
           retry: '0'
-      - step: build@python
-        name: build_python
-        displayName: Python 构建
-        pythonVersion: '3.11'
-        commands:
-          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          - '# 可以使用pip下载依赖'
-          - '# pip install --user -r requirements.txt'
-          - python --version
-          - ls -la mkdir output
-          - 'cp server_release.sh output/ '
-        artifacts:
-          - name: BUILD_ARTIFACT
-            path:
-              - ./output
-        caches: []
-        notify: []
-        strategy:
-          retry: '0'
   - name: stage-2d75b6ed
     displayName: 打包
     strategy: naturally
