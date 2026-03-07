@@ -59,18 +59,63 @@ stages:
         notify: []
         strategy:
           retry: '0'
-  - name: stage-9fbd3892
-    displayName: 发布
+      - step: build@python
+        name: build_python
+        displayName: Python 构建
+        pythonVersion: '3.11'
+        commands:
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - '# 可以使用pip下载依赖'
+          - '# pip install --user -r requirements.txt'
+          - python --version
+          - ls -la mkdir output
+          - 'cp server_release.sh output/ '
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./output
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+  - name: stage-2d75b6ed
+    displayName: 未命名
     strategy: naturally
     trigger: auto
     executor: []
     steps:
-      - step: publish@release_artifacts
-        name: publish_release_artifacts
-        displayName: 发布
-        dependArtifact: output
-        version: 1.0.0.0
-        autoIncrement: true
+      - step: build@python
+        name: build_python
+        displayName: Python 构建
+        pythonVersion: '3.11'
+        commands:
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - '# 可以使用pip下载依赖'
+          - '# pip install --user -r requirements.txt'
+          - python --version
+          - python --version
+          - ls -la mkdir output
+          - 'cp server_release.sh output/ '
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./output
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+  - name: stage-9fbd3892
+    displayName: 发布
+    strategy: naturally
+    trigger: auto
+    executor:
+      - daihongtao111
+    steps:
+      - step: publish@general_artifacts
+        name: publish_general_artifacts
+        displayName: 上传制品
+        dependArtifact: BUILD_ARTIFACT
+        artifactName: output
         notify: []
         strategy:
           retry: '0'
