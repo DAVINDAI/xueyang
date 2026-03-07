@@ -1,5 +1,6 @@
-# 基础镜像
-FROM python:3.9-slim
+# 基础镜像 - 使用 1Panel 镜像（与本地 Python 3.11.14 保持一致）
+# 基础镜像 - Python 3.11 (与本地开发环境保持一致)
+FROM hub.1panel.dev/library/python:3.11-slim
 
 # 设置工作目录
 WORKDIR /app

@@ -1,5 +1,5 @@
-# 构建阶段
-FROM node:22-alpine as build
+# 构建阶段 - 使用 1Panel 镜像
+FROM hub.1panel.dev/library/node:22-alpine AS build
 
 # 设置工作目录
 WORKDIR /app
@@ -16,8 +16,8 @@ COPY . .
 # 构建应用
 RUN npm run build
 
-# 运行阶段
-FROM nginx:alpine
+# 运行阶段 - 使用 1Panel 镜像
+FROM hub.1panel.dev/library/nginx:alpine
 
 # 复制构建产物
 COPY --from=build /app/dist /usr/share/nginx/html
