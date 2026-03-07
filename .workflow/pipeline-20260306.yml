@@ -50,7 +50,7 @@ stages:
           - python --version
           - 'ls -la '
           - mkdir output
-          - 'cp server_release.sh output/ '
+          - 'cp server-deploy.sh output/ '
         artifacts:
           - name: BUILD_ARTIFACT
             path:
