@@ -35,6 +35,8 @@ services:
     image: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/frontend:latest
     ports:
       - "80:80"
+    environment:
+      - VITE_API_BASE_URL=/api
     depends_on:
       backend:
         condition: service_healthy

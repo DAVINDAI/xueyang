@@ -125,7 +125,7 @@ check_health() {
     
     echo ""
     echo "检查后端服务..."
-    if curl -f http://localhost:8000/docs &> /dev/null; then
+    if curl -f http://localhost:80/docs &> /dev/null; then
         echo "✓ 后端服务正常"
     else
         echo "⚠ 后端服务可能未正常启动，请检查日志"
@@ -148,8 +148,10 @@ show_logs() {
     echo ""
     echo "访问地址:"
     echo "  前端: http://47.110.67.241"
-    echo "  后端: http://47.110.67.241:8000"
-    echo "  API文档: http://47.110.67.241:8000/docs"
+    echo "  后端: http://47.110.67.241/api"
+    echo "  API文档: http://47.110.67.241/docs"
+    echo "  OpenAPI: http://47.110.67.241/openapi.json"
+    echo "  ReDoc: http://47.110.67.241/redoc"
     echo ""
     echo "常用命令:"
     echo "  查看日志: docker compose -f ${PROJECT_DIR}/docker-compose.prod.yml logs -f"
