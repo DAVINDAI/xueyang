@@ -26,7 +26,7 @@ const snakeToCamel = (str) => {
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
+  baseURL: '/api',
   timeout: 300000,
   headers: {
     'Content-Type': 'application/json'
@@ -111,7 +111,7 @@ export const chatApi = {
   // 流式聊天
   chatCompletionStream: async (sessionId, modelName, message, onChunk, onDone, onError) => {
     try {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+      const baseURL = '/api'
       console.log('开始流式请求，模型:', modelName)
       
       // 获取token
