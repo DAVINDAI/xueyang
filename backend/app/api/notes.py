@@ -8,7 +8,6 @@ from app.services.db import (
     update_note,
     delete_note
 )
-from app.api.auth import get_current_user
 
 router = APIRouter()
 
@@ -23,8 +22,7 @@ class NoteUpdate(BaseModel):
 
 @router.post("/notes", response_model=Dict[str, Any])
 async def create_note_endpoint(
-    note: NoteCreate,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    note: NoteCreate
 ):
     """
     创建笔记
@@ -46,9 +44,7 @@ async def create_note_endpoint(
         raise HTTPException(status_code=500, detail=f"创建笔记失败: {str(e)}")
 
 @router.get("/notes", response_model=List[Dict[str, Any]])
-async def list_notes(
-    current_user: Dict[str, Any] = Depends(get_current_user)
-):
+async def list_notes():
     """
     获取笔记列表
     
@@ -62,8 +58,7 @@ async def list_notes(
 
 @router.get("/notes/{note_id}", response_model=Dict[str, Any])
 async def get_note_endpoint(
-    note_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    note_id: int
 ):
     """
     获取笔记详情
@@ -85,8 +80,7 @@ async def get_note_endpoint(
 @router.put("/notes/{note_id}", response_model=Dict[str, Any])
 async def update_note_endpoint(
     note_id: int,
-    note: NoteUpdate,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    note: NoteUpdate
 ):
     """
     更新笔记
@@ -114,8 +108,7 @@ async def update_note_endpoint(
 
 @router.delete("/notes/{note_id}", response_model=Dict[str, Any])
 async def delete_note_endpoint(
-    note_id: int,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    note_id: int
 ):
     """
     删除笔记
