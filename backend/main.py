@@ -28,7 +28,8 @@ EXCLUDE_PATHS = [
 
 # 允许前缀匹配的路径（这些路径下的所有子路径都不需要认证）
 EXCLUDE_PREFIX_PATHS = [
-    "/api/chat/memos"
+    "/api/chat/memos",
+    "/api/notes"
 ]
 
 # 身份校验中间件
