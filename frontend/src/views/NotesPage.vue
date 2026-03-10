@@ -31,6 +31,9 @@
             </div>
             
             <div class="note-footer">
+              <el-button type="text" size="small" @click.stop="viewNote(note.id)">
+                <el-icon><Document /></el-icon> 查看
+              </el-button>
               <el-button type="text" size="small" @click.stop="deleteNote(note.id)">
                 <el-icon><Delete /></el-icon> 删除
               </el-button>
@@ -84,9 +87,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { notesApi } from '../api'
 import { Document, Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+
+const router = useRouter()
 
 const notes = ref([])
 const editingNote = ref(null)
@@ -188,6 +194,11 @@ const saveNote = async () => {
     console.error('保存笔记失败:', error)
     ElMessage.error('保存笔记失败')
   }
+}
+
+// 查看笔记详情
+const viewNote = (noteId) => {
+  router.push(`/notes/${noteId}`)
 }
 
 // 编辑笔记

@@ -57,6 +57,12 @@ const router = createRouter({
       name: 'notes',
       component: () => import('../views/NotesPage.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/notes/:id',
+      name: 'noteDetail',
+      component: () => import('../views/NoteDetail.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })
