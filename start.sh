@@ -144,9 +144,9 @@ start_frontend() {
         echo -e "${YELLOW}正在安装前端依赖...${NC}"
         npm install
     fi
-    
+
     # 启动前端 (Vite 默认支持热重载，使用 >> 追加模式)
-    nohup npm run dev >> "$FRONTEND_LOG" 2>&1 &
+    VITE_API_BASE_URL=http://localhost:8000/api nohup npm run dev >> "$FRONTEND_LOG" 2>&1 &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > "$FRONTEND_PID_FILE"
     
