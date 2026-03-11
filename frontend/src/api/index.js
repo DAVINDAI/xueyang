@@ -111,8 +111,8 @@ export const chatApi = {
   // 流式聊天
   chatCompletionStream: async (sessionId, modelName, message, onChunk, onDone, onError) => {
     try {
-      const baseURL = '/api'
-      console.log('开始流式请求，模型:', modelName)
+      const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+      console.log('开始流式请求，模型:', modelName, 'baseURL:', baseURL)
       
       // 获取token
       const token = localStorage.getItem('token')
