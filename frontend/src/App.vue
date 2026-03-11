@@ -4,9 +4,9 @@
       <img src="/xy.png" alt="Logo" class="logo" />
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
+        <router-link to="/chat" class="nav-link">对话连接</router-link>
         <router-link to="/stats" class="nav-link">统计信息</router-link>
         <router-link to="/details" class="nav-link">详情查看</router-link>
-        <router-link to="/chat" class="nav-link">大模型聊天</router-link>
         <router-link to="/notes" class="nav-link">笔记管理</router-link>
         <router-link to="/memo" class="nav-link">备忘录</router-link>
         <router-link to="/resume" class="nav-link">简历优化</router-link>

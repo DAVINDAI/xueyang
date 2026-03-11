@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <h1>大模型聊天</h1>
+    <h1>对话连接</h1>
     
     <div class="chat-container">
       <!-- 左侧会话列表 -->
