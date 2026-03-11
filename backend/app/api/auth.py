@@ -26,7 +26,7 @@ verification_codes = {}
 # JWT密钥
 SECRET_KEY = os.getenv("SECRET_KEY", "p26j876xYHvYc4GzpX4E624NQc1vMf6c28ZvtxOvVvg")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 10080
 
 # Pydantic模型
 class SendCodeRequest(BaseModel):
