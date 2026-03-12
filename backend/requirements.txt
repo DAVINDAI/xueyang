@@ -1,9 +1,12 @@
 # LangChain核心框架
 langchain>=0.3.0
 langchain-openai>=0.1.0
+langchain-community>=0.3.0  # 社区集成，包含DashScope等
 
 # 大模型相关
 openai>=1.0.0  # 用于OpenAI兼容接口
+modelscope>=1.0.0  # ModelScope模型库
+torch>=2.0.0  # PyTorch，用于模型推理
 
 # 工具库
 tiktoken>=0.5.0  # 用于token计算
@@ -32,3 +35,10 @@ tavily-python>=0.5.0  # Tavily搜索API
 
 # 网页抓取
 playwright>=1.40.0  # 浏览器自动化
+
+# LlamaIndex
+llama-index>=0.10.0  # LlamaIndex核心框架
+llama-index-embeddings-openai>=0.1.0  # OpenAI嵌入模型
+llama-index-embeddings-langchain>=0.1.0  # LangChain嵌入模型集成
+llama-index-vector-stores-chroma>=0.1.0  # ChromaDB向量存储集成
+chromadb>=1.0.0  # ChromaDB向量数据库

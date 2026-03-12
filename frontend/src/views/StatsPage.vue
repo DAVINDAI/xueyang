@@ -33,26 +33,30 @@
   </div>
 
   <div class="celebration-modal" v-if="showCelebration">
-    <div class="confetti-container">
-      <div class="confetti" v-for="n in 50" :key="n"></div>
-    </div>
-    
-    <div class="celebration-content">
-      <div class="emoji-large">🎉</div>
-      <h2>太棒了！</h2>
-      <p>你刚刚发现了：{{ discovery }}</p>
-      <p class="encouragement">{{ encouragement }}</p>
-      
-      <div class="achievement-badge">
-        <span class="badge-emoji">🏆</span>
-        <span class="badge-text">探索者徽章</span>
+    <transition name="modal-fade">
+      <div class="modal-content-wrapper">
+        <div class="confetti-container">
+          <div class="confetti" v-for="n in 50" :key="n"></div>
+        </div>
+        
+        <div class="celebration-content">
+          <div class="emoji-large">🎉</div>
+          <h2>太棒了！</h2>
+          <p>你刚刚发现了：{{ discovery }}</p>
+          <p class="encouragement">{{ encouragement }}</p>
+          
+          <div class="achievement-badge">
+            <span class="badge-emoji">🏆</span>
+            <span class="badge-text">探索者徽章</span>
+          </div>
+          
+          <button class="continue-btn" @click="continueExploring">
+            <span>继续探索</span>
+            <span class="arrow">→</span>
+          </button>
+        </div>
       </div>
-      
-      <button class="continue-btn" @click="continueExploring">
-        <span>继续探索</span>
-        <span class="arrow">→</span>
-      </button>
-    </div>
+    </transition>
   </div>
 </template>
 
@@ -129,6 +133,12 @@ const initDailyChart = () => {
         trigger: 'axis',
         formatter: '{b}: {c} 条消息'
       },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
       xAxis: {
         type: 'category',
         data: dates
@@ -196,8 +206,8 @@ const loadStatsData = async () => {
     statsData.value = data
     
     // 初始化图表
-    initModelChart()
-    initDailyChart()
+    // initModelChart()
+    // initDailyChart()
   } catch (error) {
     console.error('加载统计数据失败:', error)
   }
@@ -227,8 +237,8 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
   
   // 显示庆祝模态框
-  showCelebration.value = true
-  createConfetti()
+  // showCelebration.value = true
+  // createConfetti()
 })
 
 // 组件卸载时清理
@@ -236,6 +246,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   modelChart.value?.dispose()
   dailyChart.value?.dispose()
+  
+  // 关闭模态框
+  showCelebration.value = false
 })
 </script>
 
@@ -330,6 +343,40 @@ onUnmounted(() => {
   }
 }
 
+/* 模态框进入动画 */
+.modal-fade-enter-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-from {
+  opacity: 0;
+}
+
+/* 模态框离开动画 */
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-leave-to {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 模态框内容离开动画 */
+.modal-fade-leave-active .modal-content-wrapper {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal-fade-leave-to .modal-content-wrapper {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+/* 模态框内容进入动画 */
+.modal-fade-enter-active .modal-content-wrapper {
+  animation: bounceIn 0.8s ease;
+}
+
 .celebration-modal {
   position: fixed;
   top: 0;
@@ -341,7 +388,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.5s ease;
 }
 
 .confetti-container {
@@ -367,7 +413,6 @@ onUnmounted(() => {
   border-radius: 30px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   position: relative;
-  animation: bounceIn 0.8s ease;
 }
 
 .emoji-large {

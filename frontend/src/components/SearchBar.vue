@@ -14,6 +14,21 @@
       </button>
     </div>
     <div v-if="isFocused && searchResults.length > 0" class="search-results">
+      <div v-if="semanticResults.length > 0">
+        <h3 class="results-header semantic-header">
+          <el-icon><ChatDotRound /></el-icon> 语义搜索
+        </h3>
+        <ul>
+          <li v-for="(result, index) in semanticResults" :key="`semantic-${index}`" class="result-item semantic-result" @click="jumpToChat(result.sessionId, result.messageId)">
+            <div class="result-title">{{ result.title }}</div>
+            <p class="result-content">{{ result.content }}</p>
+            <div class="result-meta">
+              <span class="result-time">{{ formatTime(result.createdAt) }}</span>
+              <span v-if="result.score" class="result-score">相似度: {{ (result.score * 100).toFixed(1) }}%</span>
+            </div>
+          </li>
+        </ul>
+      </div>
       <div v-if="localResults.length > 0">
         <h3 class="results-header local-header">
           <el-icon><ChatDotRound /></el-icon> 本地聊天记录
@@ -60,6 +75,10 @@ const searchResults = ref([]);
 const loading = ref(false);
 const error = ref('');
 const isFocused = ref(false);
+
+const semanticResults = computed(() => {
+  return searchResults.value.filter(r => r.type === 'semantic');
+});
 
 const localResults = computed(() => {
   return searchResults.value.filter(r => r.type === 'local');
@@ -194,6 +213,10 @@ onUnmounted(() => {
   gap: 6px;
 }
 
+.semantic-header {
+  color: #e6a23c;
+}
+
 .local-header {
   color: #67c23a;
 }
@@ -221,6 +244,15 @@ onUnmounted(() => {
 
 .result-item:last-child {
   margin-bottom: 0;
+}
+
+.semantic-result {
+  background-color: #fdf6ec;
+  cursor: pointer;
+}
+
+.semantic-result:hover {
+  background-color: #faecd8;
 }
 
 .local-result {
@@ -262,6 +294,19 @@ onUnmounted(() => {
 .result-time {
   font-size: 11px;
   color: #909399;
+}
+
+.result-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.result-score {
+  font-size: 11px;
+  color: #e6a23c;
+  font-weight: 500;
 }
 
 .search-loading {

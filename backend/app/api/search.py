@@ -6,6 +6,7 @@ import sqlite3
 import logging
 from app.config import TAVILY_CONFIG
 from app.services.db import search_chat_messages
+from app.services.llamaindex_service import get_llamaindex_service
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -28,13 +29,21 @@ def search_web_sync(search_query, tavily_api_key):
 
 @router.post("/search")
 async def search(request: SearchRequest):
-    """搜索接口 - 返回Tavily网络搜索结果和本地聊天记录搜索结果"""
+    """搜索接口 - 返回语义搜索、本地聊天记录搜索结果和网络搜索结果"""
     try:
         search_query = request.query
         if not search_query:
             raise HTTPException(status_code=400, detail="查询参数不能为空")
         
-        # 1. 搜索本地聊天记录
+        # 1. 语义搜索（LlamaIndex）
+        semantic_results = []
+        try:
+            llamaindex_service = get_llamaindex_service()
+            semantic_results = llamaindex_service.search(search_query, top_k=3)
+        except Exception as e:
+            logger.error(f"语义搜索失败: {str(e)}", exc_info=True)
+        
+        # 2. 搜索本地聊天记录
         local_results = []
         try:
             chat_messages = search_chat_messages(search_query, limit=5)
@@ -54,7 +63,7 @@ async def search(request: SearchRequest):
         except Exception as e:
             logger.error(f"本地搜索发生未预期错误: {str(e)}", exc_info=True)
         
-        # 2. 搜索网络内容（Tavily）- 使用线程池避免阻塞
+        # 3. 搜索网络内容（Tavily）- 使用线程池避免阻塞
         web_results = []
         try:
             tavily_api_key = os.getenv(TAVILY_CONFIG["api_key_env"])
@@ -80,8 +89,8 @@ async def search(request: SearchRequest):
         except Exception as e:
             logger.error(f"网络搜索失败: {str(e)}", exc_info=True)
         
-        # 3. 合并结果，本地结果在前
-        all_results = local_results + web_results
+        # 4. 合并结果，语义搜索在前，然后是本地搜索，最后是网络搜索
+        all_results = semantic_results + local_results + web_results
         
         return {"results": all_results}
         

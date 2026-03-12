@@ -21,6 +21,7 @@ from app.services.db import (
 )
 from app.services.llm import llm_service
 from app.services.tokenizer import tokenizer_service
+from app.services.llamaindex_service import get_llamaindex_service
 from app.config import MODEL_CONFIGS
 from typing import Dict, Any, List
 
@@ -322,6 +323,14 @@ async def chat_completion(
         # 保存AI回复
         ai_message_id = save_chat_message(session_id, "assistant", response, ai_token_count)
         
+        # 更新向量索引
+        try:
+            llamaindex_service = get_llamaindex_service()
+            llamaindex_service.update_index(session_id)
+            logger.info(f"Updated vector index for session {session_id}")
+        except Exception as e:
+            logger.error(f"Failed to update vector index: {e}")
+        
         # 检查上下文长度
         current_messages = get_chat_messages(session_id)
         current_tokens = tokenizer_service.count_messages_tokens(model_name, current_messages)
@@ -409,6 +418,14 @@ async def chat_completion_stream(
             
             ai_token_count = tokenizer_service.count_tokens(model_name, full_response)
             ai_message_id = save_chat_message(session_id, "assistant", full_response, ai_token_count)
+            
+            # 更新向量索引
+            try:
+                llamaindex_service = get_llamaindex_service()
+                llamaindex_service.update_index(session_id)
+                logger.info(f"Updated vector index for session {session_id}")
+            except Exception as e:
+                logger.error(f"Failed to update vector index: {e}")
             
             current_messages = get_chat_messages(session_id)
             current_tokens = tokenizer_service.count_messages_tokens(model_name, current_messages)
