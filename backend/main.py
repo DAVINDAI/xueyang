@@ -86,7 +86,7 @@ except AttributeError:
 
 # 创建FastAPI应用
 app = FastAPI(
-    title="LangGraph Chat API",
+    title="学氧助手API",
     description="大模型聊天和数据分析API",
     version="1.0.0",
     debug=True,
@@ -122,7 +122,7 @@ async def startup_event():
 # 根路径
 @app.get("/")
 async def root():
-    return {"message": "Welcome to LangGraph Chat API"}
+    return {"message": "Welcome to 学氧助手API"}
 
 # 健康检查
 @app.get("/health")

@@ -26,7 +26,7 @@
       </router-view>
     </main>
     <footer class="app-footer">
-      <p>© 2026 LangGraph Chat. All rights reserved.</p>
+      <p>© 2026 学氧助手. All rights reserved.</p>
     </footer>
   </div>
 </template>

@@ -23,7 +23,7 @@ echo "上传部署脚本..."
 scp deploy-remote.sh $SERVER:$REMOTE_DIR/
 
 echo "上传文档..."
-scp REMOTE_DEPLOYMENT.md $SERVER:$REMOTE_DIR/
+scp docs/LOCAL_DEPLOYMENT.md $SERVER:$REMOTE_DIR/
 
 echo ""
 echo "========================================="

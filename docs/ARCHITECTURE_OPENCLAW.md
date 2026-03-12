@@ -500,9 +500,9 @@ npm run dev
 
 ### A. 相关文档
 - `README.md` - 项目说明
-- `DEPLOYMENT.md` - 部署指南
-- `REMOTE_DEPLOYMENT.md` - 远程部署指南
-- `LOCAL_RUN_GUIDE.md` - 本地运行指南
+- `docs/DEPLOYMENT.md` - 部署指南
+- `docs/LOCAL_DEPLOYMENT.md` - 本地部署指南
+- `docs/LOCAL_RUN_GUIDE.md` - 本地运行指南
 
 ### B. 联系方式
 - 📧 邮箱: davindai@foxmail.com
