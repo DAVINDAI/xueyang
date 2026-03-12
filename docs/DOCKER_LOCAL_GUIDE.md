@@ -153,9 +153,6 @@ docker compose -f docker-compose.prod.yml ps
 # 查看日志
 ./scripts/docker-logs.sh
 
-# 测试后端 API
-curl http://localhost:8000/docs
-
 # 测试前端（浏览器访问）
 http://localhost
 ```
@@ -325,8 +322,10 @@ cat .env
 
 **解决**：
 ```bash
-# 检查后端服务状态
-curl http://localhost:8000/docs
+# 进入后端容器检查服务状态
+docker exec -it xueyang-backend-1 bash
+curl http://localhost:8000/health
+exit
 
 # 检查容器网络
 docker network ls
