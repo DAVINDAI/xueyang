@@ -212,6 +212,13 @@ const handleResize = () => {
 // 继续探索
 const continueExploring = () => {
   showCelebration.value = false
+  // 清理动态创建的 confetti 元素
+  nextTick(() => {
+    const confettiContainer = document.querySelector('.confetti-container')
+    if (confettiContainer) {
+      confettiContainer.innerHTML = ''
+    }
+  })
 }
 
 // 生命周期钩子
