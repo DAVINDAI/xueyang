@@ -8,7 +8,7 @@ echo "========================================="
 
 PROJECT_DIR="/opt/xueyang"
 BACKUP_DIR="/opt/backups"
-DOCKER_REGISTRY="crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com"
+DOCKER_REGISTRY="crpi-76fbd77t4270ljs4-vpc.cn-hangzhou.personal.cr.aliyuncs.com"
 DOCKER_USERNAME="davindai@hotmail.com"
 
 check_docker() {
