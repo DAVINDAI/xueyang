@@ -14,42 +14,24 @@ RUN apt-get update && apt-get install -y \
 # 阶段 2: 核心依赖 - 轻量级包
 FROM base AS core-deps
 
+# 复制核心依赖文件
+COPY requirements-core.txt .
+
 # 安装核心依赖（轻量级）
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
     && pip config set global.trusted-host mirrors.aliyun.com \
-    && pip install --no-cache-dir \
-    langchain \
-    langchain-openai \
-    langchain-community \
-    openai \
-    tiktoken \
-    python-dotenv \
-    requests \
-    PyJWT \
-    fastapi \
-    uvicorn \
-    python-multipart \
-    pydantic \
-    pydantic-settings \
-    PyPDF2 \
-    langgraph \
-    tavily-python
+    && pip install --no-cache-dir -r requirements-core.txt
 
 # 阶段 3: 大体积依赖 - 重量级包
 FROM core-deps AS big-deps
 
+# 复制大体积依赖文件
+COPY requirements-big.txt .
+
 # 安装大体积依赖
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
     && pip config set global.trusted-host mirrors.aliyun.com \
-    && pip install --no-cache-dir \
-    torch \
-    modelscope \
-    playwright \
-    llama-index \
-    llama-index-embeddings-openai \
-    llama-index-embeddings-langchain \
-    llama-index-vector-stores-chroma \
-    chromadb
+    && pip install --no-cache-dir -r requirements-big.txt
 
 # 阶段 4: 应用镜像 - 运行时
 FROM big-deps
