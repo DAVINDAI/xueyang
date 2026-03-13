@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 
 # 安装轻量级依赖
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
+    && pip config set global.trusted-host mirrors.aliyun.com \
     && pip install --user --no-cache-dir \
     langchain \
     langchain-openai \
@@ -56,4 +57,4 @@ RUN mkdir -p /app/data /app/results
 EXPOSE 8000
 
 # 启动命令（运行时安装大体积依赖）
-CMD ["bash", "-c", "pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip install --no-cache-dir torch modelscope playwright llama-index llama-index-embeddings-openai llama-index-embeddings-langchain llama-index-vector-stores-chroma chromadb && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["bash", "-c", "pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && pip config set global.trusted-host mirrors.aliyun.com && pip install --no-cache-dir torch modelscope playwright llama-index llama-index-embeddings-openai llama-index-embeddings-langchain llama-index-vector-stores-chroma chromadb && uvicorn main:app --host 0.0.0.0 --port 8000"]
