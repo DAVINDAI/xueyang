@@ -57,4 +57,4 @@ RUN mkdir -p /app/data /app/results
 EXPOSE 8000
 
 # 启动命令（运行时安装大体积依赖）
-CMD ["bash", "-c", "pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && pip config set global.trusted-host mirrors.aliyun.com && pip install --no-cache-dir torch modelscope playwright llama-index llama-index-embeddings-openai llama-index-embeddings-langchain llama-index-vector-stores-chroma chromadb && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["bash", "-c", "pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && pip config set global.trusted-host mirrors.aliyun.com && pip install --no-cache-dir torch modelscope playwright llama-index llama-index-embeddings-openai llama-index-embeddings-langchain llama-index-vector-stores-chroma chromadb && echo '依赖安装完成，启动应用...' && uvicorn main:app --host 0.0.0.0 --port 8000"]
