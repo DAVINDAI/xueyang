@@ -46,9 +46,9 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="created_at" label="创建时间" width="180">
+          <el-table-column prop="createdAt" label="创建时间" width="180">
             <template #default="scope">
-              <span>{{ formatDate(scope.row.created_at) }}</span>
+              <span>{{ formatDate(scope.row.createdAt) }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="200" fixed="right">

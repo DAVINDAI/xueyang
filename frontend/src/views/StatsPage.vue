@@ -4,12 +4,12 @@
     
     <div class="stats-summary">
       <div class="summary-card">
-        <div class="summary-value">{{ statsData.session_count || 0 }}</div>
+        <div class="summary-value">{{ statsData.sessionCount || 0 }}</div>
         <div class="summary-label">总会话数</div>
       </div>
       
       <div class="summary-card">
-        <div class="summary-value">{{ statsData.message_count || 0 }}</div>
+        <div class="summary-value">{{ statsData.messageCount || 0 }}</div>
         <div class="summary-label">总消息数</div>
       </div>
       
@@ -94,16 +94,16 @@ const initModelChart = () => {
       legend: {
         orient: 'vertical',
         left: 'left',
-        data: statsData.value.model_stats?.map(item => item.model_name) || []
+        data: statsData.value.modelStats?.map(item => item.modelName) || []
       },
       series: [
         {
           name: '模型使用',
           type: 'pie',
           radius: '60%',
-          data: statsData.value.model_stats?.map(item => ({
+          data: statsData.value.modelStats?.map(item => ({
             value: item.count,
-            name: item.model_name
+            name: item.modelName
           })) || [],
           emphasis: {
             itemStyle: {

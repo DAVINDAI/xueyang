@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import stats, details, chat, search, resume, auth, notes
+from app.api import stats, details, chat, search, resume, auth, notes, coding_playground
 from app.services.db import init_database, add_indexes_to_existing_db
 import os
 from dotenv import load_dotenv
@@ -100,6 +100,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
 app.include_router(details.router, prefix="/api/details", tags=["details"])
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(coding_playground.router, prefix="/api", tags=["coding_playground"])
 app.include_router(search.router, prefix="/api", tags=["search"])
 app.include_router(resume.router, prefix="/api", tags=["resume"])
 app.include_router(notes.router, prefix="/api", tags=["notes"])

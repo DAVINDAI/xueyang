@@ -23,6 +23,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/coding-playground',
+      name: 'codingPlayground',
+      component: () => import('../views/CodingPlayground.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/details',
       name: 'details',
       component: () => import('../views/DetailsPage.vue'),

@@ -221,4 +221,11 @@ export const notesApi = {
 // 为了方便在组件中直接使用
 api.search = (query) => api.post('/search', { query })
 
+// 编码游乐场API
+export const codingPlaygroundApi = {
+  getProblem: (difficulty) => api.get(`/coding-playground/problem?difficulty=${difficulty}`),
+  submitCode: (problemId, code) => api.post('/coding-playground/submit', { problem_id: problemId, code }),
+  getUserAnswers: (problemId) => api.get(`/coding-playground/answers/${problemId}`)
+}
+
 export default api
