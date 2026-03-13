@@ -1,6 +1,6 @@
 services:
   backend:
-    image: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/backend:latest
+    image: crpi-76fbd77t4270ljs4-vpc.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/backend:latest
     expose:
       - "8000"
     volumes:
@@ -32,7 +32,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/frontend:latest
+    image: crpi-76fbd77t4270ljs4-vpc.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/frontend:latest
     ports:
       - "80:80"
     depends_on:
