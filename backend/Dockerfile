@@ -1,9 +1,9 @@
-# 阶段 1: 基础镜像 - 系统依赖
-FROM hub.1panel.dev/library/python:3.11-slim AS base
+# 阶段 1: 构建依赖
+FROM hub.1panel.dev/library/python:3.11-slim AS builder
 
 WORKDIR /app
 
-# 安装系统依赖
+# 安装构建依赖
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -11,18 +11,20 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 阶段 2: 依赖镜像 - Python 依赖
-FROM base AS deps
-
 # 复制依赖文件
 COPY requirements.txt .
 
-# 安装 Python 依赖
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install --no-cache-dir -r requirements.txt
+# 安装Python依赖到用户目录
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    && pip install --user --no-cache-dir -r requirements.txt
 
-# 阶段 3: 应用镜像 - 运行时
-FROM deps
+# 阶段 2: 运行时
+FROM hub.1panel.dev/library/python:3.11-slim
+
+WORKDIR /app
+
+# 从构建阶段复制依赖
+COPY --from=builder /root/.local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
 # 复制应用代码
 COPY . .
