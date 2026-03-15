@@ -7,6 +7,9 @@ triggers:
     branches:
       precise:
         - main
+variables:
+  global:
+    - ALIYUN_REGISTRY_PASSWORD
 stages:
   - name: stage-5fa4b636
     displayName: docker
@@ -20,7 +23,7 @@ stages:
         type: account
         repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
         username: davindai@hotmail.com
-        password: Pp710027784
+        password: ${ALIYUN_REGISTRY_PASSWORD}
         tag: backend
         dockerfile: backend/Dockerfile
         context: backend
