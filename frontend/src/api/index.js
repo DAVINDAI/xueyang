@@ -33,6 +33,21 @@ const api = axios.create({
   }
 })
 
+// 生成唯一访客ID
+const generateVisitorId = () => {
+  return 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
+}
+
+// 获取或创建访客ID
+const getVisitorId = () => {
+  let visitorId = localStorage.getItem('visitorId')
+  if (!visitorId) {
+    visitorId = generateVisitorId()
+    localStorage.setItem('visitorId', visitorId)
+  }
+  return visitorId
+}
+
 // 请求拦截器
 api.interceptors.request.use(
   config => {
@@ -45,6 +60,11 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      // 登录状态下不添加访客ID
+    } else {
+      // 未登录状态下添加访客ID头
+      const visitorId = getVisitorId()
+      config.headers['X-Visitor-ID'] = visitorId
     }
     
     return config
@@ -114,8 +134,9 @@ export const chatApi = {
       const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
       console.log('开始流式请求，模型:', modelName, 'baseURL:', baseURL)
       
-      // 获取token
+      // 获取token和访客ID
       const token = localStorage.getItem('token')
+      const visitorId = getVisitorId()
       const headers = {
         'Content-Type': 'application/json'
       }
@@ -124,6 +145,9 @@ export const chatApi = {
       if (token) {
         headers.Authorization = `Bearer ${token}`
       }
+      
+      // 添加访客ID头
+      headers['X-Visitor-ID'] = visitorId
       
       const response = await fetch(`${baseURL}/chat/completion/stream`, {
         method: 'POST',
@@ -226,6 +250,11 @@ export const codingPlaygroundApi = {
   getProblem: (difficulty) => api.get(`/coding-playground/problem?difficulty=${difficulty}`),
   submitCode: (problemId, code) => api.post('/coding-playground/submit', { problem_id: problemId, code }),
   getUserAnswers: (problemId) => api.get(`/coding-playground/answers/${problemId}`)
+}
+
+// 进化API
+export const evolutionApi = {
+  evolve: () => api.post('/evolution')
 }
 
 export default api

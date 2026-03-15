@@ -30,9 +30,8 @@
         <div ref="dailyChartRef" class="chart"></div>
       </div>
     </div>
-  </div>
 
-  <div class="celebration-modal" v-if="showCelebration">
+    <div class="celebration-modal" v-if="showCelebration">
     <transition name="modal-fade">
       <div class="modal-content-wrapper">
         <div class="confetti-container">
@@ -58,6 +57,7 @@
       </div>
     </transition>
   </div>
+</div>
 </template>
 
 <script setup>

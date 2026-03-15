@@ -64,11 +64,11 @@ class ResumeOptimizer:
         
         # 整合结果
         result = {
-            "industryAnalysis": optimized_resume_data.get('industry_analysis', ''),
-            "optimizedResume": optimized_resume_data.get('optimized_resume', ''),
-            "optimizationSuggestions": optimized_resume_data.get('suggestions', []),
-            "matchingAnalysis": optimized_resume_data.get('matching_analysis', {}),
-            "interviewPreparation": interview_prep
+            "industry_analysis": optimized_resume_data.get('industry_analysis', ''),
+            "optimized_resume": optimized_resume_data.get('optimized_resume', ''),
+            "optimization_suggestions": optimized_resume_data.get('suggestions', []),
+            "matching_analysis": optimized_resume_data.get('matching_analysis', {}),
+            "interview_preparation": interview_prep
         }
         
         # 异步保存结果到数据库
@@ -78,11 +78,11 @@ class ResumeOptimizer:
                 save_resume_optimization(
                     job_title=job_title,
                     job_description=job_description,
-                    industry_analysis=result.get('industryAnalysis', ''),
-                    optimized_resume=result.get('optimizedResume', ''),
-                    optimization_suggestions=result.get('optimizationSuggestions', []),
-                    matching_analysis=result.get('matchingAnalysis', {}),
-                    interview_preparation=result.get('interviewPreparation', '')
+                    industry_analysis=result.get('industry_analysis', ''),
+                    optimized_resume=result.get('optimized_resume', ''),
+                    optimization_suggestions=result.get('optimization_suggestions', []),
+                    matching_analysis=result.get('matching_analysis', {}),
+                    interview_preparation=result.get('interview_preparation', '')
                 )
                 print(f"简历优化结果已保存到数据库: {job_title}")
             except Exception as e:
@@ -286,3 +286,6 @@ class ResumeOptimizer:
             print(f"解析响应时发生错误: {e}")
         
         return result
+
+# 创建全局简历优化服务实例
+resume_optimizer_service = ResumeOptimizer()

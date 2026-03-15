@@ -18,6 +18,48 @@
           <p>科技赋能</p>
         </div>
       </div>
+      <!-- 暂时隐藏网站进化功能 -->
+      <!-- <div class="evolution-section">
+        <el-button type="primary" @click="evolveWebsite" :loading="isLoading" size="large">
+          <el-icon><Refresh /></el-icon> 网站进化
+        </el-button>
+        <p class="evolution-hint">点击按钮启动网站自动进化，让AI为您优化网站体验</p>
+      </div> -->
+      
+      <!-- 暂时隐藏进化结果对话框 -->
+      <!-- <el-dialog
+        v-model="resultDialogVisible"
+        title="网站进化结果"
+        width="80%"
+      >
+        <div v-if="evolutionResult" class="evolution-result">
+          <el-collapse>
+            <el-collapse-item title="用户体验建议">
+              <div v-html="renderMarkdown(evolutionResult.user_experience)"></div>
+            </el-collapse-item>
+            <el-collapse-item title="交互设计建议">
+              <div v-html="renderMarkdown(evolutionResult.interaction_design)"></div>
+            </el-collapse-item>
+            <el-collapse-item title="视觉设计建议">
+              <div v-html="renderMarkdown(evolutionResult.visual_design)"></div>
+            </el-collapse-item>
+            <el-collapse-item title="前端实现建议">
+              <div v-html="renderMarkdown(evolutionResult.frontend_implementation)"></div>
+            </el-collapse-item>
+            <el-collapse-item title="后端实现建议">
+              <div v-html="renderMarkdown(evolutionResult.backend_implementation)"></div>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+        <div v-else>
+          <p>正在生成进化建议...</p>
+        </div>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="resultDialogVisible = false">关闭</el-button>
+          </span>
+        </template>
+      </el-dialog> -->
     </div>
     
     <div class="feature-section">
@@ -116,7 +158,36 @@
 </template>
 
 <script setup>
-// 首页组件
+import { ref } from 'vue'
+import { evolutionApi } from '../api/index.js'
+import { Refresh } from '@element-plus/icons-vue'
+import { marked } from 'marked'
+
+// 响应式数据
+const isLoading = ref(false)
+const resultDialogVisible = ref(false)
+const evolutionResult = ref(null)
+
+// 进化网站
+const evolveWebsite = async () => {
+  isLoading.value = true
+  try {
+    const response = await evolutionApi.evolve()
+    evolutionResult.value = response
+    resultDialogVisible.value = true
+  } catch (error) {
+    console.error('进化失败:', error)
+    // 显示错误提示
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 渲染Markdown
+const renderMarkdown = (content) => {
+  if (!content) return ''
+  return marked(content)
+}
 </script>
 
 <style scoped>

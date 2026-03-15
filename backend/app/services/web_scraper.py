@@ -150,3 +150,6 @@ class WebScraper:
             print("Cookies已保存")
         except Exception as e:
             print(f"保存cookies失败: {e}")
+
+# 创建全局WebScraper服务实例
+web_scraper_service = WebScraper()

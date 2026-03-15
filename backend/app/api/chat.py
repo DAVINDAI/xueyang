@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Request
 from fastapi.responses import StreamingResponse
 import traceback
 import logging
@@ -31,11 +31,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # 备忘录辅助方法
-async def process_memo_command(session_id: int, model_name: str, user_message_id: int) -> Dict[str, Any]:
+async def process_memo_command(visitor_id: str, session_id: int, model_name: str, user_message_id: int) -> Dict[str, Any]:
     """
     处理备忘录命令，创建备忘录
     
     Args:
+        visitor_id: 访客ID
         session_id: 会话ID
         model_name: 模型名称
         user_message_id: 当前用户消息ID
@@ -44,7 +45,7 @@ async def process_memo_command(session_id: int, model_name: str, user_message_id
         dict: 包含备忘录创建结果的字典
     """
     # 获取会话的所有消息（包含刚保存的消息）
-    current_messages = get_chat_messages(session_id)
+    current_messages = get_chat_messages(visitor_id, session_id)
     if len(current_messages) < 3:  # 需要至少有一条之前的用户消息和AI回复
         raise HTTPException(status_code=400, detail="会话消息不足，无法创建备忘录")
     
@@ -121,7 +122,7 @@ AI：{ai_message['content']}
         raise HTTPException(status_code=500, detail="大模型返回的结果不是有效的 JSON 格式")
     
     # 保存备忘录
-    memo_id = create_memo_message(session_id, user_message['id'], json.dumps(analysis_data, ensure_ascii=False))
+    memo_id = create_memo_message(visitor_id, session_id, user_message['id'], json.dumps(analysis_data, ensure_ascii=False))
     
     return {
         "session_id": session_id,
@@ -135,6 +136,7 @@ AI：{ai_message['content']}
 
 @router.post("/sessions", response_model=Dict[str, Any])
 async def create_session(
+    request: Request,
     session_name: str = Body(..., description="会话名称"),
     model_name: str = Body(..., description="模型名称", enum=list(MODEL_CONFIGS.keys()))
 ):
@@ -147,7 +149,9 @@ async def create_session(
     - **model_name**: 模型名称，可选值：glm-5, qwen-plus
     """
     try:
-        session_id = create_chat_session(session_name, model_name)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        session_id = create_chat_session(visitor_id, session_name, model_name)
         return {
             "session_id": session_id,
             "session_name": session_name,
@@ -157,20 +161,24 @@ async def create_session(
         raise HTTPException(status_code=500, detail=f"创建会话失败: {str(e)}")
 
 @router.get("/sessions", response_model=List[Dict[str, Any]])
-async def list_sessions():
+async def list_sessions(request: Request):
     """
     获取会话列表
     
     返回所有聊天会话的列表。
     """
     try:
-        sessions = get_chat_sessions()
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        sessions = get_chat_sessions(visitor_id)
         return sessions
     except Exception as e:
+        logger.error(f"获取会话列表失败: {str(e)}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"获取会话列表失败: {str(e)}")
 
 @router.get("/sessions/{session_id}", response_model=Dict[str, Any])
-async def get_session(session_id: int):
+async def get_session(request: Request, session_id: int):
     """
     获取会话信息
     
@@ -179,7 +187,9 @@ async def get_session(session_id: int):
     - **session_id**: 会话ID
     """
     try:
-        session = get_chat_session(session_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        session = get_chat_session(visitor_id, session_id)
         if not session:
             raise HTTPException(status_code=404, detail=f"会话不存在: {session_id}")
         return session
@@ -190,6 +200,7 @@ async def get_session(session_id: int):
 
 @router.put("/sessions/{session_id}", response_model=Dict[str, Any])
 async def update_session(
+    request: Request,
     session_id: int,
     session_name: str = Body(..., description="新的会话名称")
 ):
@@ -202,7 +213,9 @@ async def update_session(
     - **session_name**: 新的会话名称
     """
     try:
-        updated = update_chat_session(session_id, session_name)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        updated = update_chat_session(visitor_id, session_id, session_name)
         if not updated:
             raise HTTPException(status_code=404, detail=f"会话不存在: {session_id}")
         return {
@@ -216,7 +229,7 @@ async def update_session(
         raise HTTPException(status_code=500, detail=f"更新会话失败: {str(e)}")
 
 @router.delete("/sessions/{session_id}", response_model=Dict[str, Any])
-async def delete_session(session_id: int):
+async def delete_session(request: Request, session_id: int):
     """
     删除会话
     
@@ -225,7 +238,9 @@ async def delete_session(session_id: int):
     - **session_id**: 会话ID
     """
     try:
-        deleted = delete_chat_session(session_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        deleted = delete_chat_session(visitor_id, session_id)
         if not deleted:
             raise HTTPException(status_code=404, detail=f"会话不存在: {session_id}")
         return {
@@ -240,7 +255,7 @@ async def delete_session(session_id: int):
 # 消息管理
 
 @router.get("/messages/{session_id}", response_model=List[Dict[str, Any]])
-async def get_messages(session_id: int):
+async def get_messages(request: Request, session_id: int):
     """
     获取会话消息
     
@@ -249,13 +264,15 @@ async def get_messages(session_id: int):
     - **session_id**: 会话ID
     """
     try:
-        messages = get_chat_messages(session_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        messages = get_chat_messages(visitor_id, session_id)
         return messages
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取消息失败: {str(e)}")
 
 @router.delete("/messages/{message_id}", response_model=Dict[str, Any])
-async def delete_message(message_id: int):
+async def delete_message(request: Request, message_id: int):
     """
     删除消息
     
@@ -264,7 +281,9 @@ async def delete_message(message_id: int):
     - **message_id**: 消息ID
     """
     try:
-        deleted = delete_chat_message(message_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        deleted = delete_chat_message(visitor_id, message_id)
         if not deleted:
             raise HTTPException(status_code=404, detail=f"消息不存在: {message_id}")
         return {
@@ -280,6 +299,7 @@ async def delete_message(message_id: int):
 
 @router.post("/completion", response_model=Dict[str, Any])
 async def chat_completion(
+    request: Request,
     session_id: int = Body(..., description="会话ID"),
     model_name: str = Body(..., description="模型名称", enum=list(MODEL_CONFIGS.keys())),
     message: str = Body(..., description="用户消息")
@@ -294,23 +314,25 @@ async def chat_completion(
     - **message**: 用户消息内容
     """
     try:
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
         # 检查会话是否存在
-        session = get_chat_session(session_id)
+        session = get_chat_session(visitor_id, session_id)
         if not session:
             raise HTTPException(status_code=404, detail=f"会话不存在: {session_id}")
         
         # 获取历史消息
-        messages = get_chat_messages(session_id)
+        messages = get_chat_messages(visitor_id, session_id)
         
         # 计算用户消息的token数
         user_token_count = tokenizer_service.count_tokens(model_name, message)
         
         # 保存用户消息
-        user_message_id = save_chat_message(session_id, "user", message, user_token_count)
+        user_message_id = save_chat_message(visitor_id, session_id, "user", message, user_token_count)
         
         # 检查是否为备忘录命令
         if message == '记一下' or message == 'm':
-            memo_result = await process_memo_command(session_id, model_name, user_message_id)
+            memo_result = await process_memo_command(visitor_id, session_id, model_name, user_message_id)
             memo_result["message"] = "备忘录创建成功"
             return memo_result
         
@@ -321,7 +343,7 @@ async def chat_completion(
         ai_token_count = tokenizer_service.count_tokens(model_name, response)
         
         # 保存AI回复
-        ai_message_id = save_chat_message(session_id, "assistant", response, ai_token_count)
+        ai_message_id = save_chat_message(visitor_id, session_id, "assistant", response, ai_token_count)
         
         # 更新向量索引
         try:
@@ -332,7 +354,7 @@ async def chat_completion(
             logger.error(f"Failed to update vector index: {e}")
         
         # 检查上下文长度
-        current_messages = get_chat_messages(session_id)
+        current_messages = get_chat_messages(visitor_id, session_id)
         current_tokens = tokenizer_service.count_messages_tokens(model_name, current_messages)
         context_status = tokenizer_service.check_context_length(model_name, current_tokens)
         
@@ -354,6 +376,7 @@ async def chat_completion(
 
 @router.post("/completion/stream")
 async def chat_completion_stream(
+    request: Request,
     session_id: int = Body(..., description="会话ID"),
     model_name: str = Body(..., description="模型名称", enum=list(MODEL_CONFIGS.keys())),
     message: str = Body(..., description="用户消息")
@@ -368,23 +391,25 @@ async def chat_completion_stream(
     - **message**: 用户消息内容
     """
     try:
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
         # 检查会话是否存在
-        session = get_chat_session(session_id)
+        session = get_chat_session(visitor_id, session_id)
         if not session:
             raise HTTPException(status_code=404, detail=f"会话不存在: {session_id}")
         
         # 获取历史消息
-        messages = get_chat_messages(session_id)
+        messages = get_chat_messages(visitor_id, session_id)
         
         # 计算用户消息的token数
         user_token_count = tokenizer_service.count_tokens(model_name, message)
         
         # 保存用户消息
-        user_message_id = save_chat_message(session_id, "user", message, user_token_count)
+        user_message_id = save_chat_message(visitor_id, session_id, "user", message, user_token_count)
         
         # 检查是否为备忘录命令
         if message == '记一下' or message == 'm':
-            memo_result = await process_memo_command(session_id, model_name, user_message_id)
+            memo_result = await process_memo_command(visitor_id, session_id, model_name, user_message_id)
             
             async def generate_memo_response():
                 yield f"data: {json.dumps({'type': 'chunk', 'content': '备忘录创建成功'}, ensure_ascii=False)}\n\n"
@@ -417,7 +442,7 @@ async def chat_completion_stream(
                     await asyncio.sleep(0)
             
             ai_token_count = tokenizer_service.count_tokens(model_name, full_response)
-            ai_message_id = save_chat_message(session_id, "assistant", full_response, ai_token_count)
+            ai_message_id = save_chat_message(visitor_id, session_id, "assistant", full_response, ai_token_count)
             
             # 更新向量索引
             try:
@@ -427,7 +452,7 @@ async def chat_completion_stream(
             except Exception as e:
                 logger.error(f"Failed to update vector index: {e}")
             
-            current_messages = get_chat_messages(session_id)
+            current_messages = get_chat_messages(visitor_id, session_id)
             current_tokens = tokenizer_service.count_messages_tokens(model_name, current_messages)
             context_status = tokenizer_service.check_context_length(model_name, current_tokens)
             
@@ -471,14 +496,16 @@ async def get_chat_config():
 # 备忘录查询和删除接口
 
 @router.get("/memos", response_model=List[Dict[str, Any]])
-async def list_memos():
+async def list_memos(request: Request):
     """
     获取备忘录列表
     
     返回所有备忘录的列表。
     """
     try:
-        memos = get_memo_messages()
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        memos = get_memo_messages(visitor_id)
         for memo in memos:
             try:
                 memo['analysis'] = json.loads(memo['content'])
@@ -489,14 +516,16 @@ async def list_memos():
         raise HTTPException(status_code=500, detail=f"获取备忘录列表失败: {str(e)}")
 
 @router.get("/memos/{memo_id}", response_model=Dict[str, Any])
-async def get_memo(memo_id: int):
+async def get_memo(request: Request, memo_id: int):
     """
     获取备忘录详情
     
     返回指定备忘录的详细信息。
     """
     try:
-        memo = get_memo_message(memo_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        memo = get_memo_message(visitor_id, memo_id)
         if not memo:
             raise HTTPException(status_code=404, detail=f"备忘录不存在: {memo_id}")
         try:
@@ -510,14 +539,16 @@ async def get_memo(memo_id: int):
         raise HTTPException(status_code=500, detail=f"获取备忘录详情失败: {str(e)}")
 
 @router.delete("/memos/{memo_id}", response_model=Dict[str, Any])
-async def delete_memo(memo_id: int):
+async def delete_memo(request: Request, memo_id: int):
     """
     删除备忘录
     
     删除指定的备忘录。
     """
     try:
-        deleted = delete_memo_message(memo_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        deleted = delete_memo_message(visitor_id, memo_id)
         if not deleted:
             raise HTTPException(status_code=404, detail=f"备忘录不存在: {memo_id}")
         return {
@@ -530,14 +561,16 @@ async def delete_memo(memo_id: int):
         raise HTTPException(status_code=500, detail=f"删除备忘录失败: {str(e)}")
 
 @router.get("/memos/session/{session_id}", response_model=List[Dict[str, Any]])
-async def list_memos_by_session(session_id: int):
+async def list_memos_by_session(request: Request, session_id: int):
     """
     获取指定会话的备忘录列表
     
     返回指定会话的所有备忘录。
     """
     try:
-        memos = get_memo_messages_by_session(session_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        memos = get_memo_messages_by_session(visitor_id, session_id)
         for memo in memos:
             try:
                 memo['analysis'] = json.loads(memo['content'])

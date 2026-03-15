@@ -84,8 +84,7 @@ class LlamaIndexService:
                 from langchain_community.embeddings import DashScopeEmbeddings
                 from llama_index.embeddings.langchain import LangchainEmbedding
                 langchain_embedding = DashScopeEmbeddings(
-                    model="text-embedding-v1",
-                    api_key=api_key
+                    model="text-embedding-v1"
                 )
                 self.embed_model = LangchainEmbedding(langchain_embedding)
             
@@ -281,3 +280,6 @@ def get_llamaindex_service() -> LlamaIndexService:
     if _llamaindex_service is None:
         _llamaindex_service = LlamaIndexService()
     return _llamaindex_service
+
+# 创建全局LlamaIndex服务实例
+llamaindex_service = get_llamaindex_service()

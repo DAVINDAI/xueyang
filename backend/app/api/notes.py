@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body, Depends
+from fastapi import APIRouter, HTTPException, Body, Depends, Request
 from typing import List, Dict, Any
 from pydantic import BaseModel
 from app.services.db import (
@@ -22,6 +22,7 @@ class NoteUpdate(BaseModel):
 
 @router.post("/notes", response_model=Dict[str, Any])
 async def create_note_endpoint(
+    request: Request,
     note: NoteCreate
 ):
     """
@@ -33,7 +34,9 @@ async def create_note_endpoint(
     - **content**: 笔记内容（Markdown格式）
     """
     try:
-        note_id = create_note(note.title, note.content, user_id=1)  # 暂时使用固定用户ID
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        note_id = create_note(visitor_id, note.title, note.content, user_id=1)  # 暂时使用固定用户ID
         return {
             "note_id": note_id,
             "title": note.title,
@@ -44,20 +47,23 @@ async def create_note_endpoint(
         raise HTTPException(status_code=500, detail=f"创建笔记失败: {str(e)}")
 
 @router.get("/notes", response_model=List[Dict[str, Any]])
-async def list_notes():
+async def list_notes(request: Request):
     """
     获取笔记列表
     
     返回当前用户的所有笔记。
     """
     try:
-        notes = get_notes(user_id=1)  # 暂时使用固定用户ID
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        notes = get_notes(visitor_id, user_id=1)  # 暂时使用固定用户ID
         return notes
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取笔记列表失败: {str(e)}")
 
 @router.get("/notes/{note_id}", response_model=Dict[str, Any])
 async def get_note_endpoint(
+    request: Request,
     note_id: int
 ):
     """
@@ -68,7 +74,9 @@ async def get_note_endpoint(
     - **note_id**: 笔记ID
     """
     try:
-        note = get_note(note_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        note = get_note(visitor_id, note_id)
         if not note:
             raise HTTPException(status_code=404, detail=f"笔记不存在: {note_id}")
         return note
@@ -79,6 +87,7 @@ async def get_note_endpoint(
 
 @router.put("/notes/{note_id}", response_model=Dict[str, Any])
 async def update_note_endpoint(
+    request: Request,
     note_id: int,
     note: NoteUpdate
 ):
@@ -92,7 +101,9 @@ async def update_note_endpoint(
     - **content**: 新的笔记内容（Markdown格式）
     """
     try:
-        updated = update_note(note_id, note.title, note.content)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        updated = update_note(visitor_id, note_id, note.title, note.content)
         if not updated:
             raise HTTPException(status_code=404, detail=f"笔记不存在: {note_id}")
         return {
@@ -108,6 +119,7 @@ async def update_note_endpoint(
 
 @router.delete("/notes/{note_id}", response_model=Dict[str, Any])
 async def delete_note_endpoint(
+    request: Request,
     note_id: int
 ):
     """
@@ -118,7 +130,9 @@ async def delete_note_endpoint(
     - **note_id**: 笔记ID
     """
     try:
-        deleted = delete_note(note_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        deleted = delete_note(visitor_id, note_id)
         if not deleted:
             raise HTTPException(status_code=404, detail=f"笔记不存在: {note_id}")
         return {

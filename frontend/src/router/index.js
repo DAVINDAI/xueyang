@@ -14,25 +14,25 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/chat',
       name: 'chat',
       component: () => import('../views/ChatPage.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/coding-playground',
       name: 'codingPlayground',
       component: () => import('../views/CodingPlayground.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/details',
       name: 'details',
       component: () => import('../views/DetailsPage.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/memo',
@@ -44,19 +44,19 @@ const router = createRouter({
       path: '/stats',
       name: 'stats',
       component: () => import('../views/StatsPage.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/resume',
       name: 'resume',
       component: () => import('../views/ResumeOptimizer.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/resume/list',
       name: 'resumeList',
       component: () => import('../views/ResumeList.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/notes',
@@ -73,22 +73,16 @@ const router = createRouter({
   ]
 })
 
-// 路由守卫
+// 路由守卫 - 简化版，只处理登录页面的重定向
 router.beforeEach((to, from, next) => {
-  // 检查路由是否需要认证
-  const requiresAuth = to.meta.requiresAuth !== false
-  
   // 检查用户是否登录
   const isLoggedIn = !!localStorage.getItem('token')
   
-  if (requiresAuth && !isLoggedIn) {
-    // 未登录，重定向到登录页面
-    next('/login')
-  } else if (to.path === '/login' && isLoggedIn) {
+  if (to.path === '/login' && isLoggedIn) {
     // 已登录，重定向到首页
     next('/')
   } else {
-    // 正常跳转
+    // 正常跳转，不再检查登录状态
     next()
   }
 })

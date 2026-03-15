@@ -97,13 +97,13 @@ start_backend() {
         echo -e "${GREEN}使用现有的SECRET_KEY${NC}"
     fi
     
-    # 检查虚拟环境（先检查项目根目录，再检查backend目录）
-    if [ -d "$PROJECT_ROOT/venv" ]; then
+    # 检查虚拟环境（优先使用backend目录的venv）
+    if [ -d "venv" ]; then
+        source venv/bin/activate
+        echo -e "${GREEN}已激活虚拟环境: backend/venv${NC}"
+    elif [ -d "$PROJECT_ROOT/venv" ]; then
         source "$PROJECT_ROOT/venv/bin/activate"
         echo -e "${GREEN}已激活虚拟环境: $PROJECT_ROOT/venv${NC}"
-    elif [ -d "venv" ]; then
-        source venv/bin/activate
-        echo -e "${GREEN}已激活虚拟环境: venv${NC}"
     fi
     
     # 检查依赖

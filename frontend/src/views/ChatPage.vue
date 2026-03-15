@@ -320,7 +320,7 @@ const fetchModels = async () => {
           label = 'Qwen Plus'
         } else if (modelKey === 'deepseek-chat') {
           label = 'DeepSeek Chat'
-        } else if (modelKey === 'doubao-seed-2-0-code-preview-260215') {
+        } else if (modelKey === 'doubao-seed-1-8-251228') {
           label = 'Doubao'
         }
         return {
@@ -336,7 +336,7 @@ const fetchModels = async () => {
       { value: 'glm-5', label: 'GLM 5' },
       { value: 'qwen-plus', label: 'Qwen Plus' },
       { value: 'deepseek-chat', label: 'DeepSeek Chat' },
-      { value: 'doubao-seed-2-0-code-preview-260215', label: 'Doubao' }
+      { value: 'doubao-seed-1-8-251228', label: 'Doubao' }
     ]
   }
 }

@@ -56,3 +56,6 @@ class PDFProcessor:
             return len(reader.pages) > 0
         except:
             return False
+
+# 创建全局PDFProcessor服务实例
+pdf_processor_service = PDFProcessor()

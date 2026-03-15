@@ -1,7 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
 from app.services.pdf_processor import PDFProcessor
 from app.services.resume_optimizer import ResumeOptimizer
-from app.services.db import get_resume_optimizations, get_resume_optimization, delete_resume_optimization
+from app.services.db import get_resume_optimizations, get_resume_optimization, delete_resume_optimization, save_resume_optimization
 import os
 import logging
 
@@ -15,6 +15,7 @@ resume_optimizer = ResumeOptimizer()
 
 @router.post("/optimize")
 async def optimize_resume(
+    request: Request,
     resume: UploadFile = File(...),
     job_description: str = Form(...)
 ):
@@ -61,6 +62,21 @@ async def optimize_resume(
     try:
         # 优化简历
         result = resume_optimizer.optimize_resume(resume_text, job_description)
+        
+        # 保存优化结果到数据库
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        save_resume_optimization(
+            visitor_id=visitor_id,
+            job_title=result.get("job_title", ""),
+            job_description=job_description,
+            industry_analysis=result.get("industry_analysis", ""),
+            optimized_resume=result.get("optimized_resume", ""),
+            optimization_suggestions=result.get("optimization_suggestions", []),
+            matching_analysis=result.get("matching_analysis", {}),
+            interview_preparation=result.get("interview_preparation", "")
+        )
+        
         return {"data": result}
         
     except Exception as e:
@@ -83,7 +99,7 @@ async def download_resume(resume_id: str):
     raise HTTPException(status_code=501, detail="下载功能开发中")
 
 @router.get("/optimizations")
-async def get_resume_optimization_list(limit: int = 100):
+async def get_resume_optimization_list(request: Request, limit: int = 100):
     """
     获取所有简历优化结果
     
@@ -94,14 +110,16 @@ async def get_resume_optimization_list(limit: int = 100):
         List[Dict]: 优化结果列表
     """
     try:
-        optimizations = get_resume_optimizations(limit=limit)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        optimizations = get_resume_optimizations(visitor_id, limit=limit)
         return {"data": optimizations}
     except Exception as e:
         logger.error(f"获取优化结果列表失败: {e}")
         raise HTTPException(status_code=500, detail="获取优化结果列表失败")
 
 @router.get("/optimizations/{optimization_id}")
-async def get_single_resume_optimization(optimization_id: int):
+async def get_single_resume_optimization(request: Request, optimization_id: int):
     """
     获取单个简历优化结果
     
@@ -112,7 +130,9 @@ async def get_single_resume_optimization(optimization_id: int):
         Dict: 优化结果
     """
     try:
-        optimization = get_resume_optimization(optimization_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        optimization = get_resume_optimization(visitor_id, optimization_id)
         if not optimization:
             raise HTTPException(status_code=404, detail="优化结果不存在")
         return {"data": optimization}
@@ -123,7 +143,7 @@ async def get_single_resume_optimization(optimization_id: int):
         raise HTTPException(status_code=500, detail="获取优化结果失败")
 
 @router.delete("/optimizations/{optimization_id}")
-async def delete_single_resume_optimization(optimization_id: int):
+async def delete_single_resume_optimization(request: Request, optimization_id: int):
     """
     删除简历优化结果
     
@@ -134,7 +154,9 @@ async def delete_single_resume_optimization(optimization_id: int):
         Dict: 删除结果
     """
     try:
-        deleted = delete_resume_optimization(optimization_id)
+        # 当state属性不存在时，visitor_id取空值
+        visitor_id = getattr(request.state, 'visitor_id', None)
+        deleted = delete_resume_optimization(visitor_id, optimization_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="优化结果不存在")
         return {"success": True, "message": "删除成功"}
