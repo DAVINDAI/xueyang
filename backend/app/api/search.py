@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 import os
 import asyncio
@@ -28,17 +28,20 @@ def search_web_sync(search_query, tavily_api_key):
     )
 
 @router.post("/search")
-async def search(request: SearchRequest):
+async def search(request: SearchRequest, fastapi_request: Request):
     """搜索接口 - 返回语义搜索、本地聊天记录搜索结果和网络搜索结果"""
     try:
         search_query = request.query
         if not search_query:
             raise HTTPException(status_code=400, detail="查询参数不能为空")
         
+        # 获取 visitor_id
+        visitor_id = getattr(fastapi_request.state, 'visitor_id', None)
+        
         # 1. 语义搜索（LlamaIndex）
         semantic_results = []
         try:
-            llamaindex_service = get_llamaindex_service()
+            llamaindex_service = get_llamaindex_service(visitor_id)
             semantic_results = llamaindex_service.search(search_query, top_k=3)
         except Exception as e:
             logger.error(f"语义搜索失败: {str(e)}", exc_info=True)
@@ -46,7 +49,7 @@ async def search(request: SearchRequest):
         # 2. 搜索本地聊天记录
         local_results = []
         try:
-            chat_messages = search_chat_messages(search_query, limit=5)
+            chat_messages = search_chat_messages(visitor_id, search_query, limit=5)
             for msg in chat_messages:
                 local_results.append({
                     "type": "local",

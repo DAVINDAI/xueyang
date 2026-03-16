@@ -56,8 +56,9 @@ class ModelScopeEmbedding(BaseEmbedding):
         return [self._get_text_embedding(text) for text in texts]
 
 class LlamaIndexService:
-    def __init__(self, chroma_persist_dir: str = "./data/chroma"):
-        self.chroma_persist_dir = chroma_persist_dir
+    def __init__(self, visitor_id: str = "default", chroma_persist_dir: str = "./data/chroma"):
+        self.visitor_id = visitor_id
+        self.chroma_persist_dir = os.path.join(chroma_persist_dir, visitor_id)
         self.index = None
         self.embed_model = None
         self._initialize_components()
@@ -120,12 +121,12 @@ class LlamaIndexService:
     def _extract_chat_history(self) -> List[Document]:
         documents = []
         try:
-            sessions = get_chat_sessions()
+            sessions = get_chat_sessions(self.visitor_id)
             for session in sessions:
                 session_id = session["id"]
                 session_name = session["session_name"]
                 
-                messages = get_chat_messages(session_id)
+                messages = get_chat_messages(self.visitor_id, session_id)
                 for msg in messages:
                     content = msg["content"]
                     role = msg["role"]
@@ -136,12 +137,13 @@ class LlamaIndexService:
                         "session_name": session_name,
                         "role": role,
                         "message_id": msg["id"],
-                        "created_at": msg["created_at"]
+                        "created_at": msg["created_at"],
+                        "visitor_id": self.visitor_id
                     }
                     
                     documents.append(Document(text=doc_text, metadata=metadata))
             
-            logger.info(f"Extracted {len(documents)} documents from chat history")
+            logger.info(f"Extracted {len(documents)} documents from chat history for visitor: {self.visitor_id}")
             return documents
         except Exception as e:
             logger.error(f"Failed to extract chat history: {e}")
@@ -178,14 +180,15 @@ class LlamaIndexService:
     
     def update_index(self, session_id: int):
         try:
-            session = get_chat_sessions()
+            # 获取当前访客的会话列表
+            session = get_chat_sessions(self.visitor_id)
             target_session = next((s for s in session if s["id"] == session_id), None)
             
             if not target_session:
-                logger.warning(f"Session {session_id} not found")
+                logger.warning(f"Session {session_id} not found for visitor: {self.visitor_id}")
                 return
             
-            messages = get_chat_messages(session_id)
+            messages = get_chat_messages(self.visitor_id, session_id)
             documents = []
             
             for msg in messages:
@@ -198,7 +201,8 @@ class LlamaIndexService:
                     "session_name": target_session["session_name"],
                     "role": role,
                     "message_id": msg["id"],
-                    "created_at": msg["created_at"]
+                    "created_at": msg["created_at"],
+                    "visitor_id": self.visitor_id
                 }
                 
                 documents.append(Document(text=doc_text, metadata=metadata))
@@ -207,7 +211,7 @@ class LlamaIndexService:
                 for doc in documents:
                     self.index.insert(doc)
                 
-                logger.info(f"Updated index with {len(documents)} documents from session {session_id}")
+                logger.info(f"Updated index with {len(documents)} documents from session {session_id} for visitor: {self.visitor_id}")
         except Exception as e:
             logger.error(f"Failed to update index for session {session_id}: {e}")
     
@@ -273,13 +277,18 @@ class LlamaIndexService:
             logger.error(f"Failed to clear index: {e}")
             raise
 
-_llamaindex_service: Optional[LlamaIndexService] = None
+# 存储不同访客的LlamaIndex服务实例
+_llamaindex_services: Dict[str, LlamaIndexService] = {}
 
-def get_llamaindex_service() -> LlamaIndexService:
-    global _llamaindex_service
-    if _llamaindex_service is None:
-        _llamaindex_service = LlamaIndexService()
-    return _llamaindex_service
+def get_llamaindex_service(visitor_id: str = "default") -> LlamaIndexService:
+    global _llamaindex_services
+    # 处理 visitor_id 为 None 的情况
+    if visitor_id is None:
+        visitor_id = "default"
 
-# 创建全局LlamaIndex服务实例
+    if visitor_id not in _llamaindex_services:
+        _llamaindex_services[visitor_id] = LlamaIndexService(visitor_id=visitor_id)
+    return _llamaindex_services[visitor_id]
+
+# 创建默认的LlamaIndex服务实例
 llamaindex_service = get_llamaindex_service()
