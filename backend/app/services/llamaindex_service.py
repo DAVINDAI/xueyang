@@ -23,7 +23,7 @@ class ModelScopeEmbedding(BaseEmbedding):
     
     def _load_model(self):
         try:
-            from modelscope import AutoModel, AutoTokenizer
+            from modelscope.models import AutoModel, AutoTokenizer
             logger.info(f"Loading ModelScope model: {self.model_name}")
             self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
             self._model = AutoModel.from_pretrained(self.model_name)
