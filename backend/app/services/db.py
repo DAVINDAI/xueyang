@@ -144,8 +144,9 @@ def get_db_connection(visitor_id):
         pass  # Windows不支持tzset
     
     # 打印数据库路径
-    if not visitor_id:
-        logger.info("visitor_id为空，使用默认数据库路径")
+    # visitor_id 为空或为 "default" 时，使用默认数据库路径
+    if not visitor_id or visitor_id == "default":
+        logger.info(f"visitor_id为空或为default，使用默认数据库路径")
         db_path = os.path.join(db_base_path, 'langgraph_data.db')
     else:
         logger.info(f"使用visitor_id: {visitor_id}，数据库路径")

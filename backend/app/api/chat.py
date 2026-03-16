@@ -347,9 +347,9 @@ async def chat_completion(
         
         # 更新向量索引
         try:
-            llamaindex_service = get_llamaindex_service()
+            llamaindex_service = get_llamaindex_service(visitor_id)
             llamaindex_service.update_index(session_id)
-            logger.info(f"Updated vector index for session {session_id}")
+            logger.info(f"Updated vector index for session {session_id} for visitor: {visitor_id}")
         except Exception as e:
             logger.error(f"Failed to update vector index: {e}")
         
@@ -446,9 +446,9 @@ async def chat_completion_stream(
             
             # 更新向量索引
             try:
-                llamaindex_service = get_llamaindex_service()
+                llamaindex_service = get_llamaindex_service(visitor_id)
                 llamaindex_service.update_index(session_id)
-                logger.info(f"Updated vector index for session {session_id}")
+                logger.info(f"Updated vector index for session {session_id} for visitor: {visitor_id}")
             except Exception as e:
                 logger.error(f"Failed to update vector index: {e}")
             
