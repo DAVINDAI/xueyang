@@ -27,28 +27,28 @@
         
         <el-table v-else :data="optimizations" style="width: 100%">
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="job_title" label="职位标题">
+          <el-table-column prop="jobTitle" label="职位标题">
             <template #default="scope">
-              <el-tooltip :content="scope.row.job_title" placement="top">
-                <div class="job-title">{{ scope.row.job_title }}</div>
+              <el-tooltip :content="scope.row.jobTitle" placement="top">
+                <div class="job-title">{{ scope.row.jobTitle }}</div>
               </el-tooltip>
             </template>
           </el-table-column>
           <el-table-column label="行业" width="150">
             <template #default="scope">
-              <el-tag size="small">{{ getIndustry(scope.row.industry_analysis) }}</el-tag>
+              <el-tag size="small">{{ getIndustry(scope.row.industryAnalysis) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="匹配度" width="120">
             <template #default="scope">
               <div class="matching-score">
-                {{ getAverageMatchingScore(scope.row.matching_analysis) }}%
+                {{ getAverageMatchingScore(scope.row.matchingAnalysis) }}%
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="created_at" label="创建时间" width="180">
+          <el-table-column prop="createdAt" label="创建时间" width="180">
             <template #default="scope">
-              <span>{{ formatDate(scope.row.created_at) }}</span>
+              <span>{{ formatDate(scope.row.createdAt) }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="200" fixed="right">
@@ -87,15 +87,15 @@
       destroy-on-close
     >
       <div v-if="currentOptimization" class="optimization-details">
-        <h3>{{ currentOptimization.job_title }}</h3>
+        <h3>{{ currentOptimization.jobTitle }}</h3>
         <div class="detail-section">
           <h4>行业分析</h4>
-          <div class="markdown-content" v-html="renderMarkdown(currentOptimization.industry_analysis)"></div>
+          <div class="markdown-content" v-html="renderMarkdown(currentOptimization.industryAnalysis)"></div>
         </div>
         <div class="detail-section">
           <h4>优化建议</h4>
           <ul>
-            <li v-for="(suggestion, index) in currentOptimization.optimization_suggestions" :key="index">
+            <li v-for="(suggestion, index) in currentOptimization.optimizationSuggestions" :key="index">
               {{ suggestion }}
             </li>
           </ul>
@@ -104,22 +104,22 @@
           <h4>匹配度分析</h4>
           <el-descriptions :column="2">
             <el-descriptions-item label="核心技能">
-              {{ currentOptimization.matching_analysis.coreSkills || '0%' }}
+              {{ currentOptimization.matchingAnalysis?.coreSkills || '0%' }}
             </el-descriptions-item>
             <el-descriptions-item label="工作经验">
-              {{ currentOptimization.matching_analysis.workExperience || '0%' }}
+              {{ currentOptimization.matchingAnalysis?.workExperience || '0%' }}
             </el-descriptions-item>
             <el-descriptions-item label="教育背景">
-              {{ currentOptimization.matching_analysis.education || '0%' }}
+              {{ currentOptimization.matchingAnalysis?.education || '0%' }}
             </el-descriptions-item>
             <el-descriptions-item label="行业适配度">
-              {{ currentOptimization.matching_analysis.industryFit || '0%' }}
+              {{ currentOptimization.matchingAnalysis?.industryFit || '0%' }}
             </el-descriptions-item>
           </el-descriptions>
         </div>
-        <div class="detail-section" v-if="currentOptimization.interview_preparation">
+        <div class="detail-section" v-if="currentOptimization.interviewPreparation">
           <h4>面试建议</h4>
-          <div class="markdown-content" v-html="renderMarkdown(currentOptimization.interview_preparation)"></div>
+          <div class="markdown-content" v-html="renderMarkdown(currentOptimization.interviewPreparation)"></div>
         </div>
       </div>
     </el-dialog>
@@ -172,7 +172,7 @@ const loadOptimizations = async () => {
     if (searchKeyword.value) {
       const keyword = searchKeyword.value.toLowerCase()
       data = data.filter(item => 
-        item.job_title.toLowerCase().includes(keyword)
+        item.jobTitle.toLowerCase().includes(keyword)
       )
     }
     

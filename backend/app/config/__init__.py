@@ -14,6 +14,11 @@ MODEL_CONFIGS = {
         "context_length": 128000,  # 128k token
         "api_base": "https://api.deepseek.com/v1",
         "api_key_env": "DEEPSEEK_API_KEY"
+    },
+    "doubao-seed-1-8-251228": {
+        "context_length": 128000,  # 128k token
+        "api_base": "https://ark.cn-beijing.volces.com/api/v3",
+        "api_key_env": "DOBAO_API_KEY"
     }
 }
 

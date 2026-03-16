@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# LangGraph 项目启动脚本
+# 学氧助手项目启动脚本
 # 同时启动后端和前端服务，并支持热重载
 
 set -e
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 项目根目录
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 
@@ -97,13 +97,13 @@ start_backend() {
         echo -e "${GREEN}使用现有的SECRET_KEY${NC}"
     fi
     
-    # 检查虚拟环境（先检查项目根目录，再检查backend目录）
-    if [ -d "$PROJECT_ROOT/venv" ]; then
+    # 检查虚拟环境（优先使用backend目录的venv）
+    if [ -d "venv" ]; then
+        source venv/bin/activate
+        echo -e "${GREEN}已激活虚拟环境: backend/venv${NC}"
+    elif [ -d "$PROJECT_ROOT/venv" ]; then
         source "$PROJECT_ROOT/venv/bin/activate"
         echo -e "${GREEN}已激活虚拟环境: $PROJECT_ROOT/venv${NC}"
-    elif [ -d "venv" ]; then
-        source venv/bin/activate
-        echo -e "${GREEN}已激活虚拟环境: venv${NC}"
     fi
     
     # 检查依赖
@@ -117,15 +117,36 @@ start_backend() {
     BACKEND_PID=$!
     echo $BACKEND_PID > "$BACKEND_PID_FILE"
     
-    # 等待后端启动
-    sleep 3
-    if kill -0 $BACKEND_PID 2>/dev/null; then
-        echo -e "${GREEN}后端服务已启动 (PID: $BACKEND_PID)${NC}"
-        echo -e "${BLUE}后端地址: http://localhost:8000${NC}"
-        echo -e "${BLUE}API 文档: http://localhost:8000/docs${NC}"
-        echo -e "${BLUE}后端日志: $BACKEND_LOG${NC}"
-    else
-        echo -e "${RED}后端服务启动失败${NC}"
+    # 等待后端启动并检测服务状态
+    sleep 2
+    local max_retries=5
+    local retry_count=0
+    local backend_started=false
+    
+    while [ $retry_count -lt $max_retries ]; do
+        if kill -0 $BACKEND_PID 2>/dev/null; then
+            # 尝试访问 API 接口检测服务是否真正启动
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health | grep -q "200"; then
+                echo -e "${GREEN}后端服务已启动 (PID: $BACKEND_PID)${NC}"
+                echo -e "${BLUE}后端地址: http://localhost:8000${NC}"
+                echo -e "${BLUE}API 文档: http://localhost:8000/docs${NC}"
+                echo -e "${BLUE}后端日志: $BACKEND_LOG${NC}"
+                backend_started=true
+                break
+            else
+                echo -e "${YELLOW}后端服务正在启动中... (${retry_count+1}/$max_retries)${NC}"
+                retry_count=$((retry_count+1))
+                sleep 2
+            fi
+        else
+            echo -e "${RED}后端服务启动失败${NC}"
+            tail -n 20 "$BACKEND_LOG"
+            exit 1
+        fi
+    done
+    
+    if [ "$backend_started" = false ]; then
+        echo -e "${RED}后端服务启动超时${NC}"
         tail -n 20 "$BACKEND_LOG"
         exit 1
     fi
@@ -144,20 +165,41 @@ start_frontend() {
         echo -e "${YELLOW}正在安装前端依赖...${NC}"
         npm install
     fi
-    
+
     # 启动前端 (Vite 默认支持热重载，使用 >> 追加模式)
-    nohup npm run dev >> "$FRONTEND_LOG" 2>&1 &
+    VITE_API_BASE_URL=http://localhost:8000/api nohup npm run dev >> "$FRONTEND_LOG" 2>&1 &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > "$FRONTEND_PID_FILE"
     
-    # 等待前端启动
-    sleep 4
-    if kill -0 $FRONTEND_PID 2>/dev/null; then
-        echo -e "${GREEN}前端服务已启动 (PID: $FRONTEND_PID)${NC}"
-        echo -e "${BLUE}前端地址: http://localhost:5173${NC}"
-        echo -e "${BLUE}前端日志: $FRONTEND_LOG${NC}"
-    else
-        echo -e "${RED}前端服务启动失败${NC}"
+    # 等待前端启动并检测服务状态
+    sleep 3
+    local max_retries=5
+    local retry_count=0
+    local frontend_started=false
+    
+    while [ $retry_count -lt $max_retries ]; do
+        if kill -0 $FRONTEND_PID 2>/dev/null; then
+            # 尝试访问前端页面检测服务是否真正启动
+            if curl -s -o /dev/null -w "%{http_code}" http://localhost:5173 | grep -q -E "200|404"; then
+                echo -e "${GREEN}前端服务已启动 (PID: $FRONTEND_PID)${NC}"
+                echo -e "${BLUE}前端地址: http://localhost:5173${NC}"
+                echo -e "${BLUE}前端日志: $FRONTEND_LOG${NC}"
+                frontend_started=true
+                break
+            else
+                echo -e "${YELLOW}前端服务正在启动中... (${retry_count+1}/$max_retries)${NC}"
+                retry_count=$((retry_count+1))
+                sleep 2
+            fi
+        else
+            echo -e "${RED}前端服务启动失败${NC}"
+            tail -n 20 "$FRONTEND_LOG"
+            exit 1
+        fi
+    done
+    
+    if [ "$frontend_started" = false ]; then
+        echo -e "${RED}前端服务启动超时${NC}"
         tail -n 20 "$FRONTEND_LOG"
         exit 1
     fi
@@ -166,7 +208,7 @@ start_frontend() {
 # 主函数
 main() {
     echo -e "${GREEN}========================================${NC}"
-    echo -e "${GREEN}  LangGraph 项目启动脚本${NC}"
+    echo -e "${GREEN}  学氧助手项目启动脚本${NC}"
     echo -e "${GREEN}========================================${NC}"
     
     # 检查端口

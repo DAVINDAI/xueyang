@@ -4,28 +4,36 @@
       <img src="/xy.png" alt="Logo" class="logo" />
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
+        <router-link to="/chat" class="nav-link">对话连接</router-link>
+        <router-link to="/coding-playground" class="nav-link">编码操场</router-link>
         <router-link to="/stats" class="nav-link">统计信息</router-link>
         <router-link to="/details" class="nav-link">详情查看</router-link>
-        <router-link to="/chat" class="nav-link">大模型聊天</router-link>
+        <router-link to="/notes" class="nav-link">笔记管理</router-link>
         <router-link to="/memo" class="nav-link">备忘录</router-link>
         <router-link to="/resume" class="nav-link">简历优化</router-link>
         <router-link to="/resume/list" class="nav-link">优化历史</router-link>
       </nav>
       <SearchBar />
-      <div v-if="isLoggedIn" class="user-info">
+      <div v-if="isUserLoggedIn" class="user-info">
         <span class="user-phone">{{ userPhone }}</span>
         <el-button type="danger" size="small" @click="handleLogout">注销</el-button>
+      </div>
+      <div v-else class="login-btn">
+        <router-link to="/login" class="nav-link">登录</router-link>
       </div>
     </header>
     <main class="app-main">
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
+        <transition name="fade"  mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
     </main>
     <footer class="app-footer">
-      <p>© 2026 LangGraph Chat. All rights reserved.</p>
+      <p>© 2026 学氧助手. All rights reserved.</p>
+      <p class="beian">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">浙ICP备2026013828号-1</a>
+      </p>
     </footer>
   </div>
 </template>
@@ -89,7 +97,7 @@ body {
 }
 
 .app-header {
-  background-color: #409eff;
+  background-color: #90EE90;
   color: white;
   padding: 0 20px;
   height: 60px;
@@ -160,6 +168,20 @@ body {
   text-align: center;
   padding: 20px;
   margin-top: auto;
+}
+
+.app-footer .beian {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.app-footer .beian a {
+  color: #909399;
+  text-decoration: none;
+}
+
+.app-footer .beian a:hover {
+  color: #fff;
 }
 
 /* 过渡动画 */

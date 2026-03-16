@@ -7,32 +7,10 @@ triggers:
     branches:
       precise:
         - main
+variables:
+  global:
+    - ALIYUN_REGISTRY_PASSWORD
 stages:
-  - name: stage-1e13d033
-    displayName: 测试
-    strategy: naturally
-    trigger: auto
-    executor: []
-    steps:
-      - step: build@python
-        name: build_python
-        displayName: Python 构建
-        pythonVersion: '3.9'
-        commands:
-          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          - '# 可以使用pip下载依赖'
-          - '# pip install --user -r requirements.txt'
-          - pwd
-          - ls -la
-          - python --version
-        artifacts:
-          - name: BUILD_ARTIFACT
-            path:
-              - ./
-        caches: []
-        notify: []
-        strategy:
-          retry: '0'
   - name: stage-5fa4b636
     displayName: docker
     strategy: naturally
@@ -40,13 +18,13 @@ stages:
     executor: []
     steps:
       - step: build@docker
-        name: build_docker
-        displayName: 镜像构建
+        name: backend_build_docker
+        displayName: backend镜像构建
         type: account
         repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
         username: davindai@hotmail.com
-        password: Pp710027784
-        tag: ${GITEE_PIPELINE_BUILD_NUMBER}
+        password: ${ALIYUN_REGISTRY_PASSWORD}
+        tag: backend
         dockerfile: backend/Dockerfile
         context: backend
         artifacts: []
@@ -57,7 +35,68 @@ stages:
         notify: []
         strategy:
           retry: '0'
-  - name: stage-1346a799
+      - step: build@docker
+        name: frontend_build_docker
+        displayName: frontend镜像构建
+        type: account
+        repository: crpi-76fbd77t4270ljs4.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me
+        username: davindai@hotmail.com
+        password: ${ALIYUN_REGISTRY_PASSWORD}
+        tag: frontend
+        dockerfile: ./frontend/Dockerfile
+        context: ./frontend
+        artifacts: []
+        isCache: false
+        processorType:
+          - amd64
+        parameter: {}
+        notify: []
+        strategy:
+          retry: '0'
+  - name: stage-2d75b6ed
+    displayName: 打包
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@python
+        name: build_python
+        displayName: Python 构建
+        pythonVersion: '3.11'
+        commands:
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - '# 可以使用pip下载依赖'
+          - '# pip install --user -r requirements.txt'
+          - python --version
+          - python --version
+          - 'ls -la '
+          - mkdir output
+          - 'cp docker-deploy-server.sh output/ '
+          - 'cp docker-compose.prod.yml output/ '
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./output
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+  - name: stage-9fbd3892
+    displayName: 发布上传
+    strategy: naturally
+    trigger: auto
+    executor:
+      - daihongtao111
+    steps:
+      - step: publish@general_artifacts
+        name: publish_general_artifacts
+        displayName: 上传制品
+        dependArtifact: BUILD_ARTIFACT
+        artifactName: output
+        notify: []
+        strategy:
+          retry: '0'
+  - name: stage-e5cf2c55
     displayName: 部署
     strategy: naturally
     trigger: auto
@@ -80,15 +119,18 @@ stages:
         script:
           - '# 功能：部署脚本会在部署主机组的每台机器上执行'
           - '# 使用场景：先将制品包解压缩到指定目录中，再执行启动脚本deploy.sh，脚本示例地址：https://gitee.com/gitee-go/spring-boot-maven-deploy-case/blob/master/deploy.sh'
-          - '# mkdir -p /home/admin/app'
-          - '# tar zxvf ~/gitee_go/deploy/output.tar.gz -C /home/admin/app'
+          - cd /opt/xueyang
+          - ''
+          - tar zxvf ~/gitee_go/deploy/output.tar.gz -C /opt/xueyang/
+          - ''
+          - mv -f output/* .
+          - ls -la /opt/xueyang/
+          - ''
           - '# sh /home/admin/app/deploy.sh restart'
           - '# 如果你是php之类的无需制品包的制品方式，可以使用 git clone 或者 git pull 将源代码更新到服务器，再执行其他命令'
           - '# git clone ***@***.git'
-          - ''
-          - cd /opt/xueyang
-          - sh server-deploy.sh
-          - ''
+          - ls -la
+          - sh docker-deploy-server.sh
           - echo 'Hello Gitee Go!'
         notify: []
         strategy:

@@ -33,11 +33,11 @@
           >
             <template #default>
               <div class="session-info">
-                <h3>{{ session.session_name }}</h3>
+                <h3>{{ session.sessionName }}</h3>
                 <div class="session-meta">
-                  <span class="model-tag">{{ session.model_name }}</span>
-                  <span class="message-count">{{ session.message_count }} 条消息</span>
-                  <span class="time">{{ formatTime(session.updated_at) }}</span>
+                  <span class="model-tag">{{ session.modelName }}</span>
+                  <span class="message-count">{{ session.messageCount }} 条消息</span>
+                  <span class="time">{{ formatTime(session.updatedAt) }}</span>
                 </div>
               </div>
             </template>
@@ -48,7 +48,7 @@
       <!-- 会话详情 -->
       <div class="session-details" v-if="selectedSession">
         <div class="session-header">
-          <h2>{{ selectedSession.session_name }}</h2>
+          <h2>{{ selectedSession.sessionName }}</h2>
           <div class="session-actions">
             <el-button type="primary" size="small" @click="editSessionName">
               <el-icon><Edit /></el-icon> 重命名
@@ -61,16 +61,16 @@
         
         <div class="session-meta-info">
           <span class="meta-item">
-            <el-icon><Cpu /></el-icon> {{ selectedSession.model_name }}
+            <el-icon><Cpu /></el-icon> {{ selectedSession.modelName }}
           </span>
           <span class="meta-item">
             <el-icon><Message /></el-icon> {{ sessionMessages.length }} 条消息
           </span>
           <span class="meta-item">
-            <el-icon><Timer /></el-icon> 创建于 {{ formatTime(selectedSession.created_at) }}
+            <el-icon><Timer /></el-icon> 创建于 {{ formatTime(selectedSession.createdAt) }}
           </span>
           <span class="meta-item">
-            <el-icon><Refresh /></el-icon> 更新于 {{ formatTime(selectedSession.updated_at) }}
+            <el-icon><Refresh /></el-icon> 更新于 {{ formatTime(selectedSession.updatedAt) }}
           </span>
         </div>
         
@@ -93,8 +93,8 @@
             >
               <div class="message-header">
                 <span class="role">{{ message.role === 'user' ? '用户' : 'AI' }}</span>
-                <span class="time">{{ formatTime(message.created_at) }}</span>
-                <span v-if="message.token_count" class="token-count">{{ message.token_count }} tokens</span>
+                <span class="time">{{ formatTime(message.createdAt) }}</span>
+                <span v-if="message.tokenCount" class="token-count">{{ message.tokenCount }} tokens</span>
               </div>
               <div class="message-content">{{ message.content }}</div>
             </div>
@@ -132,7 +132,7 @@
       title="删除会话"
       width="400px"
     >
-      <p>确定要删除会话 "{{ selectedSession?.session_name }}" 吗？此操作不可恢复。</p>
+      <p>确定要删除会话 "{{ selectedSession?.sessionName }}" 吗？此操作不可恢复。</p>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="deleteDialogVisible = false">取消</el-button>
@@ -163,7 +163,7 @@ const filteredSessions = computed(() => {
     return sessions.value
   }
   return sessions.value.filter(session => 
-    session.session_name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    session.sessionName.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
 
@@ -205,7 +205,7 @@ const selectSession = async (session) => {
 // 编辑会话名称
 const editSessionName = () => {
   if (selectedSession.value) {
-    newSessionName.value = selectedSession.value.session_name
+    newSessionName.value = selectedSession.value.sessionName
     renameDialogVisible.value = true
   }
 }
@@ -215,7 +215,7 @@ const confirmRename = async () => {
   if (selectedSession.value && newSessionName.value) {
     try {
       await chatApi.updateSession(selectedSession.value.id, newSessionName.value)
-      selectedSession.value.session_name = newSessionName.value
+      selectedSession.value.sessionName = newSessionName.value
       await loadSessions()
       renameDialogVisible.value = false
       

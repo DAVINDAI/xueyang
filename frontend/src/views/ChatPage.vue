@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <h1>大模型聊天</h1>
+    <h1>对话连接</h1>
     
     <div class="chat-container">
       <!-- 左侧会话列表 -->
@@ -304,11 +304,44 @@ const highlightAllCodeBlocks = () => {
 }
 
 // 可用模型
-const availableModels = [
-  { value: 'glm-5', label: 'GLM 5' },
-  { value: 'qwen-plus', label: 'Qwen Plus' },
-  { value: 'deepseek-chat', label: 'DeepSeek Chat' }
-]
+const availableModels = ref([])
+
+// 从后端获取模型列表
+const fetchModels = async () => {
+  try {
+    const response = await chatApi.getConfig()
+    if (response && response.models) {
+      availableModels.value = Object.keys(response.models).map(modelKey => {
+        // 生成友好的模型名称
+        let label = modelKey
+        if (modelKey === 'glm-5') {
+          label = 'GLM 5'
+        } else if (modelKey === 'qwen-plus') {
+          label = 'Qwen Plus'
+        } else if (modelKey === 'deepseek-chat') {
+          label = 'DeepSeek Chat'
+        } else if (modelKey === 'doubao-seed-1-8-251228') {
+          label = 'Doubao'
+        }
+        return {
+          value: modelKey,
+          label: label
+        }
+      })
+    }
+  } catch (error) {
+    console.error('获取模型列表失败:', error)
+    //  fallback 模型列表
+    availableModels.value = [
+      { value: 'glm-5', label: 'GLM 5' },
+      { value: 'qwen-plus', label: 'Qwen Plus' },
+      { value: 'deepseek-chat', label: 'DeepSeek Chat' },
+      { value: 'doubao-seed-1-8-251228', label: 'Doubao' }
+    ]
+  }
+}
+
+
 
 // 过滤会话
 const filteredSessions = computed(() => {
@@ -654,6 +687,9 @@ onMounted(() => {
     startOnLoad: true,
     theme: 'default'
   })
+  // 获取模型列表
+  fetchModels()
+  // 加载会话列表
   loadSessions()
 })
 

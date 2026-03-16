@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "langgraph-agent"
 version = "0.1.0"
-description = "A simple LangGraph agent example"
+description = "学氧助手 - 基于 LangGraph 的智能对话系统"
 requires-python = ">=3.9"
 
 [tool.poetry.dependencies]

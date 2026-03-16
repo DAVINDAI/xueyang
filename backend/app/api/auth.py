@@ -6,6 +6,10 @@ import jwt
 import os
 from typing import Dict, Any
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 router = APIRouter()
 security = HTTPBearer()
@@ -15,16 +19,20 @@ WHITELIST_PHONE_NUMBERS = [
     "17800212735",
     "13800138000",
     "13900139000",
-    "13700137000"
+    "13700137000",
+    "18310106903",
+    "15201432786"
 ]
 
 # 临时存储验证码 (手机号 -> (验证码, 过期时间))
 verification_codes = {}
 
 # JWT密钥
-SECRET_KEY = os.getenv("SECRET_KEY", "p26j876xYHvYc4GzpX4E624NQc1vMf6c28ZvtxOvVvg")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY环境变量未设置，请在启动脚本中设置或手动设置环境变量")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 10080
 
 # Pydantic模型
 class SendCodeRequest(BaseModel):

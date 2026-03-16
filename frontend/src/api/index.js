@@ -26,12 +26,27 @@ const snakeToCamel = (str) => {
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 300000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
+
+// 生成唯一访客ID
+const generateVisitorId = () => {
+  return 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
+}
+
+// 获取或创建访客ID
+const getVisitorId = () => {
+  let visitorId = localStorage.getItem('visitorId')
+  if (!visitorId) {
+    visitorId = generateVisitorId()
+    localStorage.setItem('visitorId', visitorId)
+  }
+  return visitorId
+}
 
 // 请求拦截器
 api.interceptors.request.use(
@@ -45,6 +60,11 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      // 登录状态下不添加访客ID
+    } else {
+      // 未登录状态下添加访客ID头
+      const visitorId = getVisitorId()
+      config.headers['X-Visitor-ID'] = visitorId
     }
     
     return config
@@ -111,11 +131,12 @@ export const chatApi = {
   // 流式聊天
   chatCompletionStream: async (sessionId, modelName, message, onChunk, onDone, onError) => {
     try {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
-      console.log('开始流式请求，模型:', modelName)
+      const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+      console.log('开始流式请求，模型:', modelName, 'baseURL:', baseURL)
       
-      // 获取token
+      // 获取token和访客ID
       const token = localStorage.getItem('token')
+      const visitorId = getVisitorId()
       const headers = {
         'Content-Type': 'application/json'
       }
@@ -124,6 +145,9 @@ export const chatApi = {
       if (token) {
         headers.Authorization = `Bearer ${token}`
       }
+      
+      // 添加访客ID头
+      headers['X-Visitor-ID'] = visitorId
       
       const response = await fetch(`${baseURL}/chat/completion/stream`, {
         method: 'POST',
@@ -209,7 +233,28 @@ export const searchApi = {
   search: (query) => api.post('/search', { query })
 }
 
+// 笔记API
+export const notesApi = {
+  createNote: (title, content) => api.post('/notes', { title, content }),
+  listNotes: () => api.get('/notes'),
+  getNote: (noteId) => api.get(`/notes/${noteId}`),
+  updateNote: (noteId, title, content) => api.put(`/notes/${noteId}`, { title, content }),
+  deleteNote: (noteId) => api.delete(`/notes/${noteId}`)
+}
+
 // 为了方便在组件中直接使用
 api.search = (query) => api.post('/search', { query })
+
+// 编码游乐场API
+export const codingPlaygroundApi = {
+  getProblem: (difficulty) => api.get(`/coding-playground/problem?difficulty=${difficulty}`),
+  submitCode: (problemId, code) => api.post('/coding-playground/submit', { problem_id: problemId, code }),
+  getUserAnswers: (problemId) => api.get(`/coding-playground/answers/${problemId}`)
+}
+
+// 进化API
+export const evolutionApi = {
+  evolve: () => api.post('/evolution')
+}
 
 export default api

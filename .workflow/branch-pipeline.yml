@@ -3,11 +3,9 @@ name: branch-pipeline
 displayName: BranchPipeline
 triggers:
   trigger: auto
-  push:
+  pr:
     branches:
-      include:
-        - .*
-      exclude:
+      prefix:
         - master
 stages:
   - name: compile
