@@ -88,12 +88,6 @@ pull_images() {
     docker pull "${DOCKER_REGISTRY}/xueyang_me/frontend:latest"
     
     echo "✓ 镜像拉取完成"
-    
-    # 清理历史镜像，释放磁盘空间
-    echo ""
-    echo "正在清理未使用的旧镜像..."
-    docker image prune -af 2>/dev/null || echo "镜像清理完成"
-    echo "✓ 旧镜像清理完成"
 }
 
 backup_data() {
@@ -144,6 +138,12 @@ check_health() {
     else
         echo "⚠ 前端服务可能未正常启动，请检查日志"
     fi
+    
+    # 清理历史镜像，释放磁盘空间
+    echo ""
+    echo "正在清理未使用的旧镜像..."
+    docker image prune -af 2>/dev/null || echo "镜像清理完成"
+    echo "✓ 旧镜像清理完成"
 }
 
 show_logs() {
