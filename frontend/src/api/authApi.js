@@ -19,12 +19,12 @@ export const sendVerificationCode = async (phone) => {
 export const login = async (phone, code) => {
   const response = await axios.post('/auth/login', { phone, code });
   // 存储token到localStorage
-  if (response.data.accessToken) {
-    localStorage.setItem('token', response.data.accessToken);
+  if (response.accessToken) {
+    localStorage.setItem('token', response.accessToken);
     // 登录成功后清除访客ID
     localStorage.removeItem('visitorId');
   }
-  return response.data;
+  return response;
 };
 
 /**
