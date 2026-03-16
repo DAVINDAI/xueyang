@@ -5,7 +5,7 @@ Write-Host "Stopping existing  frontend processes..." -ForegroundColor Yellow
 Get-Process -Name "node" -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # 激活虚拟环境
-.\venv\Scripts\Activate.ps1
+.\backend\venv\Scripts\Activate.ps1
 
 Write-Host "starting backend server..." -ForegroundColor Green
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"

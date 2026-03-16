@@ -23,13 +23,13 @@ class ModelScopeEmbedding(BaseEmbedding):
     
     def _load_model(self):
         try:
-            from modelscope.models import AutoModel, AutoTokenizer
-            logger.info(f"Loading ModelScope model: {self.model_name}")
+            from modelscope import AutoModel, AutoTokenizer
+            logger.info(f"Loading model: {self.model_name}")
             self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
             self._model = AutoModel.from_pretrained(self.model_name)
-            logger.info("ModelScope model loaded successfully")
+            logger.info("Model loaded successfully")
         except Exception as e:
-            logger.error(f"Failed to load ModelScope model: {e}")
+            logger.error(f"Failed to load model: {e}")
             raise
     
     def _get_query_embedding(self, query: str) -> List[float]:
