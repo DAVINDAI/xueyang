@@ -1,8 +1,11 @@
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution
 from app.services.db import init_database, add_indexes_to_existing_db
+from app.services.visitor_manager import visitor_manager
 import os
+import uuid
 from dotenv import load_dotenv
 import jwt
 import logging
@@ -65,13 +68,13 @@ async def auth_middleware(request: Request, call_next):
             if phone:
                 request.state.visitor_id = phone
                 logger.info(f"为登录用户设置visitor_id为手机号: {phone}")
-        except jwt.PyJWTError:
-            from fastapi.responses import JSONResponse
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "无效的认证凭据"},
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        except jwt.ExpiredSignatureError:
+            return JSONResponse(status_code=401, content={"detail": "认证凭据已过期"})
+        except jwt.InvalidTokenError:
+            return JSONResponse(status_code=401, content={"detail": "无效的认证凭据"})
+        except Exception as e:
+            logger.error(f"JWT验证异常: {e}")
+            return JSONResponse(status_code=401, content={"detail": "认证失败"})
     else:
         # 没有token，生成临时visitor_id
         visitor_id = request.headers.get("X-Visitor-ID")
@@ -79,14 +82,12 @@ async def auth_middleware(request: Request, call_next):
             request.state.visitor_id = visitor_id
             logger.info(f"从请求头获取访客ID: {visitor_id}")
         else:
-            import uuid
             request.state.visitor_id = f"temp_{uuid.uuid4()}"
             logger.info(f"生成临时访客ID: {request.state.visitor_id}")
     
     # 更新访客最后访问时间
     if hasattr(request.state, "visitor_id") and request.state.visitor_id:
         try:
-            from app.services.visitor_manager import visitor_manager
             visitor_manager.update_visitor(request.state.visitor_id)
         except Exception as e:
             logger.error(f"更新访客信息失败: {e}")
