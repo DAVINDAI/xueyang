@@ -10,11 +10,11 @@ class ProblemGeneratorService:
     def __init__(self):
         self.model_name = "qwen-plus"  # 使用qwen大模型
     
-    def generate_problem(self, difficulty: int) -> Dict[str, Any]:
+    def generate_problem(self, difficulty: int, visitor_id: str = None) -> Dict[str, Any]:
         """生成算法题目"""
         try:
             # 获取最近的题目作为参考
-            recent_problems = coding_playground_service.get_recent_problems(limit=5)
+            recent_problems = coding_playground_service.get_recent_problems(visitor_id, limit=5)
             
             # 构建提示词
             prompt = self._build_prompt(difficulty, recent_problems)
@@ -27,6 +27,7 @@ class ProblemGeneratorService:
             
             # 保存到数据库
             problem_id = coding_playground_service.add_problem(
+                visitor_id=visitor_id,
                 title=problem["title"],
                 description=problem["description"],
                 difficulty=problem["difficulty"],
