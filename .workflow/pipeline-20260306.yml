@@ -7,8 +7,6 @@ triggers:
     branches:
       precise:
         - main
-  schedule:
-    - cron: '* * 3 * * ? *'
 variables:
   global:
     - ALIYUN_REGISTRY_PASSWORD
