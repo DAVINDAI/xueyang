@@ -104,6 +104,11 @@ async def auth_middleware(request: Request, call_next):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         request.state.user = payload
+        # 为登录用户设置visitor_id为手机号
+        phone = payload.get("sub")
+        if phone:
+            request.state.visitor_id = phone
+            logger.info(f"为登录用户设置visitor_id为手机号: {phone}")
     except jwt.PyJWTError:
         from fastapi.responses import JSONResponse
         return JSONResponse(

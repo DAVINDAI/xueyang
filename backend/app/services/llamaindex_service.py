@@ -8,6 +8,9 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 import chromadb
 from app.services.db import get_chat_sessions, get_chat_messages
 
+# 数据存储基础路径
+data_base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data')
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -56,9 +59,13 @@ class ModelScopeEmbedding(BaseEmbedding):
         return [self._get_text_embedding(text) for text in texts]
 
 class LlamaIndexService:
-    def __init__(self, visitor_id: str = "default", chroma_persist_dir: str = "./data/chroma"):
+    def __init__(self, visitor_id: str = "default"):
         self.visitor_id = visitor_id
-        self.chroma_persist_dir = os.path.join(chroma_persist_dir, visitor_id)
+        # 使用绝对路径存储向量数据，与数据库路径保持一致
+        if not visitor_id or visitor_id == "default":
+            self.chroma_persist_dir = os.path.join(data_base_path, "chroma")
+        else:
+            self.chroma_persist_dir = os.path.join(data_base_path, visitor_id, "chroma")
         self.index = None
         self.embed_model = None
         self._initialize_components()

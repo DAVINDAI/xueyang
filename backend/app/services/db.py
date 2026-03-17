@@ -119,6 +119,30 @@ def init_database(visitor_id=None):
     )
     ''')
     
+    # 创建编程题目表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS problems (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        difficulty INTEGER NOT NULL,  -- 1: 简单, 2: 中等, 3: 困难
+        examples TEXT NOT NULL,  -- JSON格式存储示例输入输出
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
+    # 创建用户答案表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_answers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        problem_id INTEGER NOT NULL,
+        user_code TEXT NOT NULL,
+        evaluation_result TEXT NOT NULL,  -- JSON格式存储评估结果
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (problem_id) REFERENCES problems (id)
+    )
+    ''')
+    
     # 创建索引 - 提升查询性能
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_session_id ON chat_message(session_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_created_at ON chat_message(created_at DESC)')
@@ -684,3 +708,150 @@ def delete_note(visitor_id: str, note_id: int) -> bool:
     conn.commit()
     conn.close()
     return deleted
+
+# 编程题目操作
+def add_problem(visitor_id: str, title: str, description: str, difficulty: int, examples: list) -> int:
+    """添加编程题目"""
+    import json
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    examples_json = json.dumps(examples)
+    cursor.execute(
+        "INSERT INTO problems (title, description, difficulty, examples) VALUES (?, ?, ?, ?)",
+        (title, description, difficulty, examples_json)
+    )
+    
+    problem_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    return problem_id
+
+def get_problem(visitor_id: str, problem_id: int) -> dict:
+    """获取编程题目"""
+    import json
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM problems WHERE id = ?", (problem_id,))
+    row = cursor.fetchone()
+    
+    conn.close()
+    
+    if row:
+        return {
+            "id": row[0],
+            "title": row[1],
+            "description": row[2],
+            "difficulty": row[3],
+            "examples": json.loads(row[4]),
+            "created_at": convert_db_time_to_iso(row[5])
+        }
+    return None
+
+def get_recent_problems(visitor_id: str, limit: int = 5) -> list:
+    """获取最近的编程题目"""
+    import json
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM problems ORDER BY created_at DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    
+    conn.close()
+    
+    problems = []
+    for row in rows:
+        problems.append({
+            "id": row[0],
+            "title": row[1],
+            "description": row[2],
+            "difficulty": row[3],
+            "examples": json.loads(row[4]),
+            "created_at": convert_db_time_to_iso(row[5])
+        })
+    
+    return problems
+
+def get_problem_by_difficulty(visitor_id: str, difficulty: int) -> dict:
+    """根据难度获取编程题目"""
+    import json
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM problems WHERE difficulty = ? ORDER BY ID LIMIT 1", (difficulty,))
+    row = cursor.fetchone()
+    
+    conn.close()
+    
+    if row:
+        return {
+            "id": row[0],
+            "title": row[1],
+            "description": row[2],
+            "difficulty": row[3],
+            "examples": json.loads(row[4]),
+            "created_at": convert_db_time_to_iso(row[5])
+        }
+    return None
+
+def add_user_answer(visitor_id: str, problem_id: int, user_code: str, evaluation_result: dict) -> int:
+    """添加用户答案"""
+    import json
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    evaluation_json = json.dumps(evaluation_result)
+    cursor.execute(
+        "INSERT INTO user_answers (problem_id, user_code, evaluation_result) VALUES (?, ?, ?)",
+        (problem_id, user_code, evaluation_json)
+    )
+    
+    answer_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    return answer_id
+
+def get_user_answers(visitor_id: str, problem_id: int, limit: int = 10) -> list:
+    """获取用户答案"""
+    import json
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT * FROM user_answers WHERE problem_id = ? ORDER BY created_at DESC LIMIT ?",
+        (problem_id, limit)
+    )
+    rows = cursor.fetchall()
+    
+    conn.close()
+    
+    answers = []
+    for row in rows:
+        answers.append({
+            "id": row[0],
+            "problem_id": row[1],
+            "user_code": row[2],
+            "evaluation_result": json.loads(row[3]),
+            "created_at": convert_db_time_to_iso(row[4])
+        })
+    
+    return answers
+
+def get_difficulty_stats(visitor_id: str) -> dict:
+    """获取难度统计"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT difficulty, COUNT(*) FROM problems GROUP BY difficulty")
+    rows = cursor.fetchall()
+    
+    conn.close()
+    
+    stats = {1: 0, 2: 0, 3: 0}
+    for row in rows:
+        stats[row[0]] = row[1]
+    
+    return stats
