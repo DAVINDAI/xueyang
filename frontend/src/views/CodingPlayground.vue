@@ -77,13 +77,27 @@
         <p>{{ evaluation.explanation }}</p>
       </div>
       
-      <div v-if="evaluation.final_code" class="final-code">
-        <h4>修复后的代码：</h4>
-        <pre>{{ evaluation.final_code }}</pre>
+      <div v-if="evaluation.finalCode" class="final-code">
+        <h4>你的代码：</h4>
+        <pre>{{ evaluation.finalCode }}</pre>
+      </div>
+      
+      <div v-if="evaluation.debugSuggestion" class="debug-suggestion">
+        <h4>调试建议：</h4>
+        <div v-if="evaluation.debugSuggestion.isFixed" class="fixed-success">
+          ✓ 调试成功！
+        </div>
+        <div v-else class="fixed-failed">
+          ✗ 调试失败
+        </div>
+        <div v-if="evaluation.debugSuggestion.suggestedFix" class="suggested-code">
+          <h5>建议的修复代码：</h5>
+          <pre>{{ evaluation.debugSuggestion.suggestedFix }}</pre>
+        </div>
       </div>
       
       <div class="debug-info">
-        <p>调试次数：{{ evaluation.debugAttempts }}/5</p>
+        <p>调试次数：{{ evaluation.debugSuggestion?.debugAttempts || 0 }}/5</p>
       </div>
     </div>
     
@@ -351,6 +365,49 @@ h1 {
   margin-top: 20px;
   font-style: italic;
   color: #666;
+}
+
+.debug-suggestion {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f8ff;
+  border-radius: 4px;
+  border: 1px solid #b3d9ff;
+}
+
+.fixed-success {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border: 1px solid #c3e6cb;
+  font-weight: bold;
+}
+
+.fixed-failed {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border: 1px solid #f5c6cb;
+  font-weight: bold;
+}
+
+.suggested-code {
+  margin-top: 15px;
+}
+
+.suggested-code pre {
+  background-color: #f8f8f8;
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  border: 1px solid #e0e0e0;
+  margin-top: 10px;
 }
 
 .loading {
