@@ -33,36 +33,6 @@ EXCLUDE_PATHS = [
 # 允许前缀匹配的路径（这些路径下的所有子路径都不需要认证）
 EXCLUDE_PREFIX_PATHS = []
 
-# 访客ID中间件
-async def visitor_middleware(request: Request, call_next):
-    # 检查是否有Bearer token，有则不生成访客ID
-    auth_header = request.headers.get("Authorization")
-    if auth_header and auth_header.startswith("Bearer "):
-        logger.info("有Bearer token，不生成访客ID")
-        response = await call_next(request)
-        return response
-    
-    # 从请求头中提取访客ID
-    visitor_id = request.headers.get("X-Visitor-ID")
-    if visitor_id:
-        request.state.visitor_id = visitor_id
-        logger.info(f"从请求头获取访客ID: {visitor_id}")
-    else:
-        # 如果没有访客ID，生成一个临时的
-        import uuid
-        request.state.visitor_id = f"temp_{uuid.uuid4()}"
-        logger.info(f"生成临时访客ID: {request.state.visitor_id}")
-    
-    # 更新访客最后访问时间
-    try:
-        from app.services.visitor_manager import visitor_manager
-        visitor_manager.update_visitor(request.state.visitor_id)
-    except Exception as e:
-        logger.error(f"更新访客信息失败: {e}")
-    
-    response = await call_next(request)
-    return response
-
 # 身份校验中间件
 async def auth_middleware(request: Request, call_next):
     # 检查是否在排除路径中
@@ -79,43 +49,47 @@ async def auth_middleware(request: Request, call_next):
             response = await call_next(request)
             return response
     
-    # 检查是否有访客ID（从request.state中获取）
-    if hasattr(request.state, "visitor_id") and request.state.visitor_id:
-        # 有访客ID，不校验token
-        logger.info(f"有访客ID: {request.state.visitor_id}，跳过token校验")
-        response = await call_next(request)
-        return response
-    
-    # 没有访客ID，需要校验token
     # 获取Authorization头
     auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "未提供有效的认证凭据"},
-            headers={"WWW-Authenticate": "Bearer"},
-        )
     
-    # 提取token
-    token = auth_header.split(" ")[1]
+    # 如果有Bearer token，验证token并设置visitor_id为phone
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        
+        # 验证token
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            request.state.user = payload
+            # 为登录用户设置visitor_id为手机号
+            phone = payload.get("sub")
+            if phone:
+                request.state.visitor_id = phone
+                logger.info(f"为登录用户设置visitor_id为手机号: {phone}")
+        except jwt.PyJWTError:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "无效的认证凭据"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    else:
+        # 没有token，生成临时visitor_id
+        visitor_id = request.headers.get("X-Visitor-ID")
+        if visitor_id:
+            request.state.visitor_id = visitor_id
+            logger.info(f"从请求头获取访客ID: {visitor_id}")
+        else:
+            import uuid
+            request.state.visitor_id = f"temp_{uuid.uuid4()}"
+            logger.info(f"生成临时访客ID: {request.state.visitor_id}")
     
-    # 验证token
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        request.state.user = payload
-        # 为登录用户设置visitor_id为手机号
-        phone = payload.get("sub")
-        if phone:
-            request.state.visitor_id = phone
-            logger.info(f"为登录用户设置visitor_id为手机号: {phone}")
-    except jwt.PyJWTError:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "无效的认证凭据"},
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # 更新访客最后访问时间
+    if hasattr(request.state, "visitor_id") and request.state.visitor_id:
+        try:
+            from app.services.visitor_manager import visitor_manager
+            visitor_manager.update_visitor(request.state.visitor_id)
+        except Exception as e:
+            logger.error(f"更新访客信息失败: {e}")
     
     response = await call_next(request)
     return response
@@ -136,11 +110,8 @@ app = FastAPI(
     debug=True,
 )
 
-# 添加身份校验中间件（在CORS之前）
+# 添加身份校验中间件（在CORS之后）
 app.middleware("http")(auth_middleware)
-
-# 添加访客ID中间件（在CORS之前）
-app.middleware("http")(visitor_middleware)
 
 # 注册路由
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
