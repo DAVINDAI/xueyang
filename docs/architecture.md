@@ -141,11 +141,11 @@ graph LR
 
     subgraph 向量存储["Chroma向量存储"]
         direction TB
-        Vec1[./data/chroma/<br/>13800138000/]
-        Vec2[./data/chroma/<br/>13900139000/]
-        Vec3[./data/chroma/<br/>visitor_xxx/]
-        Vec4[./data/chroma/<br/>visitor_yyy/]
-        VecDefault[./data/chroma/<br/>default/]
+        Vec1[./data/13800138000/<br/>chroma/]
+        Vec2[./data/13900139000/<br/>chroma/]
+        Vec3[./data/visitor_xxx/<br/>chroma/]
+        Vec4[./data/visitor_yyy/<br/>chroma/]
+        VecDefault[./data/<br/>chroma/]
     end
 
     User1 --> DB1
@@ -236,6 +236,7 @@ graph TD
         AuthAPI[auth.py<br/>认证API]
         ResumeAPI[resume.py<br/>简历API]
         NotesAPI[notes.py<br/>笔记API]
+        CodingAPI[coding_playground.py<br/>编码操场API]
     end
 
     subgraph 服务模块["服务模块"]
@@ -252,6 +253,7 @@ graph TD
     Main --> AuthAPI
     Main --> ResumeAPI
     Main --> NotesAPI
+    Main --> CodingAPI
 
     ChatAPI --> DB
     ChatAPI --> LLMService
@@ -266,6 +268,7 @@ graph TD
     ResumeAPI --> LLMService
 
     NotesAPI --> DB
+    CodingAPI --> DB
 
     LLamaIndexService --> DB
     LLMService --> Config
