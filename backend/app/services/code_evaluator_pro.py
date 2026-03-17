@@ -71,17 +71,29 @@ class CodeEvaluatorServicePro:
             evaluation = self._parse_evaluation(response)
             logger.info(f"[步骤 6/7] 评估结果解析完成 - 是否正确: {evaluation.get('is_correct')}, 质量评分: {evaluation.get('quality_score')}")
             
-            # 7. 使用LangGraph实现智能循环调试
+            # 7. 保存原始评估结果
+            original_evaluation = evaluation.copy()
+            original_evaluation["final_code"] = user_code
+            original_evaluation["performance_metrics"] = performance_metrics
+            
+            # 8. 使用LangGraph实现智能循环调试（仅作为参考，不影响原始评估结果）
             if not evaluation.get("is_correct", False):
-                logger.info(f"[步骤 7/7] 代码评估错误，开始使用LangGraph智能调试...")
+                logger.info(f"[步骤 8/8] 代码评估错误，开始使用LangGraph智能调试...")
                 debug_result = self._debug_with_langgraph(problem, user_code, evaluation.get("errors", []))
-                evaluation.update(debug_result)
-                logger.info(f"[步骤 7/7] LangGraph调试完成 - 调试次数: {evaluation.get('debug_attempts')}, 最终是否正确: {evaluation.get('is_correct')}")
+                # 将调试结果作为建议的一部分，而不是覆盖原始评估
+                original_evaluation["debug_suggestion"] = {
+                    "debug_attempts": debug_result.get("debug_attempts"),
+                    "suggested_fix": debug_result.get("final_code"),
+                    "is_fixed": debug_result.get("is_correct")
+                }
+                logger.info(f"[步骤 8/8] LangGraph调试完成 - 调试次数: {debug_result.get('debug_attempts')}, 最终是否正确: {debug_result.get('is_correct')}")
             else:
-                logger.info("[步骤 7/7] 代码评估正确，无需调试")
-                evaluation["debug_attempts"] = 0
-                evaluation["final_code"] = user_code
-                evaluation["performance_metrics"] = performance_metrics
+                logger.info("[步骤 8/8] 代码评估正确，无需调试")
+                original_evaluation["debug_attempts"] = 0
+                original_evaluation["debug_suggestion"] = None
+            
+            # 最终返回原始评估结果
+            evaluation = original_evaluation
             
             logger.info(f"========== 代码评估完成 ==========")
             return evaluation
