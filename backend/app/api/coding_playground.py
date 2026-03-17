@@ -22,7 +22,7 @@ async def get_problem(request: Request, difficulty: int = 1) -> Dict[str, Any]:
         
         # 如果没有对应难度的题目，生成新题目
         if not problem:
-            problem = problem_generator_service.generate_problem(difficulty)
+            problem = problem_generator_service.generate_problem(difficulty, visitor_id)
             # 保存生成的题目
             coding_playground_service.add_problem(
                 visitor_id=visitor_id,
