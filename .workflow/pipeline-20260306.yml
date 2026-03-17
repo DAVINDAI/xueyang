@@ -2,11 +2,13 @@ version: '1.0'
 name: pipeline-20260306
 displayName: pipeline-20260306
 triggers:
-  trigger: auto
+  trigger: manual
   push:
     branches:
       precise:
         - main
+  schedule:
+    - cron: '* * 3 * * ? *'
 variables:
   global:
     - ALIYUN_REGISTRY_PASSWORD
@@ -28,7 +30,7 @@ stages:
         dockerfile: backend/Dockerfile
         context: backend
         artifacts: []
-        isCache: false
+        isCache: true
         processorType:
           - amd64
         parameter: {}
@@ -46,7 +48,7 @@ stages:
         dockerfile: ./frontend/Dockerfile
         context: ./frontend
         artifacts: []
-        isCache: false
+        isCache: true
         processorType:
           - amd64
         parameter: {}
