@@ -28,7 +28,7 @@ stages:
         dockerfile: backend/Dockerfile
         context: backend
         artifacts: []
-        isCache: true
+        isCache: false
         processorType:
           - amd64
         parameter: {}
