@@ -30,7 +30,7 @@ stages:
         dockerfile: backend/Dockerfile
         context: backend
         artifacts: []
-        isCache: false
+        isCache: true
         processorType:
           - amd64
         parameter: {}
@@ -48,7 +48,7 @@ stages:
         dockerfile: ./frontend/Dockerfile
         context: ./frontend
         artifacts: []
-        isCache: false
+        isCache: true
         processorType:
           - amd64
         parameter: {}
