@@ -30,7 +30,7 @@ class CodeState(BaseModel):
 
 class CodeEvaluatorServicePro:
     def __init__(self):
-        self.model_name = "glm-5"  # 使用GLM大模型
+        self.model_name = "qwen-plus"  # 使用Qwen大模型
         self.max_debug_attempts = 5  # 最多调试5次
         self.timeout_seconds = 10  # 代码执行超时时间
     
