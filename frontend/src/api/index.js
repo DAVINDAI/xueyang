@@ -51,8 +51,8 @@ const getVisitorId = () => {
 // 请求拦截器
 api.interceptors.request.use(
   config => {
-    // 转换请求数据的驼峰为下划线
-    if (config.data && typeof config.data === 'object') {
+    // 转换请求数据的驼峰为下划线（FormData对象不转换）
+    if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData)) {
       config.data = convertObjectKeys(config.data, camelToSnake)
     }
     
