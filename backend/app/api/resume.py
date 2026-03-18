@@ -60,15 +60,19 @@ async def optimize_resume(
         raise HTTPException(status_code=400, detail="职位描述不能为空")
     
     try:
-        # 优化简历
-        result = resume_optimizer.optimize_resume(resume_text, job_description)
-        
-        # 保存优化结果到数据库
         # 当state属性不存在时，visitor_id取空值
         visitor_id = getattr(request.state, 'visitor_id', None)
+        
+        # 优化简历
+        result = resume_optimizer.optimize_resume(resume_text, job_description, visitor_id)
+        
+        # 提取职位标题
+        job_title = resume_optimizer._extract_job_title(job_description)
+        
+        # 保存优化结果到数据库
         save_resume_optimization(
             visitor_id=visitor_id,
-            job_title=result.get("job_title", ""),
+            job_title=job_title,
             job_description=job_description,
             industry_analysis=result.get("industry_analysis", ""),
             optimized_resume=result.get("optimized_resume", ""),

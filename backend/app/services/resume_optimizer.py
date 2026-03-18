@@ -42,13 +42,14 @@ class ResumeOptimizer:
         # 如果没有找到，返回默认标题
         return "未知职位"
     
-    def optimize_resume(self, resume_content: str, job_description: str) -> Dict:
+    def optimize_resume(self, resume_content: str, job_description: str, visitor_id: str = None) -> Dict:
         """
         优化简历
         
         Args:
             resume_content: 原始简历内容
             job_description: 职位描述
+            visitor_id: 访问者ID
             
         Returns:
             Dict: 包含优化结果的字典
@@ -76,6 +77,7 @@ class ResumeOptimizer:
             try:
                 job_title = self._extract_job_title(job_description)
                 save_resume_optimization(
+                    visitor_id=visitor_id,
                     job_title=job_title,
                     job_description=job_description,
                     industry_analysis=result.get('industry_analysis', ''),
