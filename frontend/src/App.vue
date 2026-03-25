@@ -115,9 +115,9 @@ body {
 
 .nav {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   flex: 1;
-  margin: 0 20px;
+  margin: 0 10px;
 }
 
 .search-bar {
@@ -128,7 +128,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-left: 20px;
+  padding-left: 15px;
   border-left: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -140,9 +140,10 @@ body {
 .nav-link {
   color: white;
   text-decoration: none;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 4px;
   transition: background-color 0.3s;
+  font-size: 14px;
 }
 
 .nav-link:hover {

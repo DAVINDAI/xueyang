@@ -61,7 +61,14 @@
         </template>
       </el-dialog> -->
     </div>
-    
+    <div class="notice-section">
+      <div class="notice-box">
+        <div class="notice-icon">⚠️</div>
+        <div class="notice-content">
+          <p>网站最多支持10个匿名用户使用，新用户数据会覆盖早期用户数据，如需长期使用请使用管理员账号登录，如有问题请发邮件至 <a href="mailto:davindai@foxmail.com" class="email-link">davindai@foxmail.com</a></p>
+        </div>
+      </div>
+    </div>
     <div class="feature-section">
       <h2 class="section-title">学习工具</h2>
       <div class="features">
@@ -468,6 +475,69 @@ const renderMarkdown = (content) => {
   
   .tech-stack h2 {
     font-size: 1.5rem;
+  }
+}
+
+/* 提示文案样式 */
+.notice-section {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.notice-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 20px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.notice-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.notice-content {
+  flex: 1;
+  text-align: center;
+}
+
+.notice-content p {
+  margin: 0;
+  color: #856404;
+  line-height: 1.2;
+  font-size: 0.8rem;
+}
+
+.email-link {
+  color: #4a90e2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.email-link:hover {
+  text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .notice-box {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+  }
+  
+  .notice-icon {
+    font-size: 1.5rem;
+  }
+  
+  .notice-content p {
+    font-size: 0.85rem;
+    text-align: center;
   }
 }
 </style>
