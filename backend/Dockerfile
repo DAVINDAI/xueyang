@@ -13,12 +13,28 @@ RUN rm -rf /etc/apt/sources.list.d/* && \
 # - gcc/g++: 用于编译 Python 依赖包中需要编译的部分（如 torch、transformers、modelscope 等深度学习库）
 # - make: 用于构建和安装某些依赖包
 # - curl: 用于下载资源（如模型文件、依赖包等）
+# - 其他依赖: 用于 Playwright 浏览器运行
 # 这些依赖是运行时和安装 Python 依赖包所必需的基础工具
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     make \
     curl \
+    libnss3 \
+    libnspr4 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # 阶段 2: 核心依赖 - 轻量级包
@@ -41,7 +57,8 @@ COPY requirements-big.txt .
 # 安装大体积依赖
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
     && pip config set global.trusted-host mirrors.aliyun.com \
-    && pip install --no-cache-dir -r requirements-big.txt
+    && pip install --no-cache-dir -r requirements-big.txt \
+    && playwright install chromium --with-deps
 
 # 阶段 4: 应用镜像 - 运行时
 FROM big-deps
