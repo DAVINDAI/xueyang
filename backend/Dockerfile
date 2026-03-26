@@ -3,6 +3,10 @@ FROM hub.1panel.dev/library/python:3.11-slim AS base
 
 WORKDIR /app
 
+# 设置清华园apt镜像源
+RUN sed -i 's|deb http://deb.debian.org/debian|deb https://mirrors.tuna.tsinghua.edu.cn/debian|g' /etc/apt/sources.list && \
+    sed -i 's|deb http://security.debian.org/debian-security|deb https://mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list
+
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     gcc \
@@ -18,8 +22,8 @@ FROM base AS core-deps
 COPY requirements-core.txt .
 
 # 安装核心依赖（轻量级）
-RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
-    && pip config set global.trusted-host mirrors.aliyun.com \
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ \
+    && pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn \
     && pip install --no-cache-dir -r requirements-core.txt
 
 # 阶段 3: 大体积依赖 - 重量级包
@@ -29,8 +33,8 @@ FROM core-deps AS big-deps
 COPY requirements-big.txt .
 
 # 安装大体积依赖
-RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
-    && pip config set global.trusted-host mirrors.aliyun.com \
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ \
+    && pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn \
     && pip install --no-cache-dir -r requirements-big.txt
 
 # 阶段 4: 应用镜像 - 运行时
