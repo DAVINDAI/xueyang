@@ -54,6 +54,7 @@ stages:
         notify: []
         strategy:
           retry: '0'
+          timeout: 20
   - name: stage-2d75b6ed
     displayName: 打包
     strategy: naturally
