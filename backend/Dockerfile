@@ -3,9 +3,11 @@ FROM hub.1panel.dev/library/python:3.11-slim AS base
 
 WORKDIR /app
 
-# 设置清华园apt镜像源
-RUN sed -i 's|deb http://deb.debian.org/debian|deb https://mirrors.tuna.tsinghua.edu.cn/debian|g' /etc/apt/sources.list && \
-    sed -i 's|deb http://security.debian.org/debian-security|deb https://mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list
+# 设置清华园apt镜像源（仅当文件存在时）
+RUN if [ -f /etc/apt/sources.list ]; then \
+    sed -i 's|deb http://deb.debian.org/debian|deb https://mirrors.tuna.tsinghua.edu.cn/debian|g' /etc/apt/sources.list && \
+    sed -i 's|deb http://security.debian.org/debian-security|deb https://mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list; \
+fi
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
