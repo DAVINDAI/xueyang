@@ -3,19 +3,28 @@ FROM hub.1panel.dev/library/python:3.11-slim AS base
 
 WORKDIR /app
 
-# 设置清华园apt镜像源（仅当文件存在时）
+# 设置镜像源并安装系统依赖
 RUN if [ -f /etc/apt/sources.list ]; then \
+    # Debian/Ubuntu系统
     sed -i 's|deb http://deb.debian.org/debian|deb https://mirrors.tuna.tsinghua.edu.cn/debian|g' /etc/apt/sources.list && \
-    sed -i 's|deb http://security.debian.org/debian-security|deb https://mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list; \
+    sed -i 's|deb http://security.debian.org/debian-security|deb https://mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y \
+        gcc \
+        g++ \
+        make \
+        curl \
+        && rm -rf /var/lib/apt/lists/* \
+elif [ -f /etc/apk/repositories ]; then \
+    # Alpine系统
+    sed -i 's|http://dl-cdn.alpinelinux.org/alpine|https://mirrors.tuna.tsinghua.edu.cn/alpine|g' /etc/apk/repositories && \
+    apk update && apk add \
+        gcc \
+        g++ \
+        make \
+        curl \
+        musl-dev \
+        && rm -rf /var/cache/apk/* \
 fi
-
-# 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    make \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
 
 # 阶段 2: 核心依赖 - 轻量级包
 FROM base AS core-deps
