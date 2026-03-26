@@ -24,8 +24,8 @@ FROM base AS core-deps
 COPY requirements-core.txt .
 
 # 安装核心依赖（轻量级）
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ \
-    && pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn \
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
+    && pip config set global.trusted-host mirrors.aliyun.com \
     && pip install --no-cache-dir -r requirements-core.txt
 
 # 阶段 3: 大体积依赖 - 重量级包
@@ -35,8 +35,8 @@ FROM core-deps AS big-deps
 COPY requirements-big.txt .
 
 # 安装大体积依赖
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/ \
-    && pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn \
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
+    && pip config set global.trusted-host mirrors.aliyun.com \
     && pip install --no-cache-dir -r requirements-big.txt
 
 # 阶段 4: 应用镜像 - 运行时
