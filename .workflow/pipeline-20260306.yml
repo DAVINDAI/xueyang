@@ -35,6 +35,7 @@ stages:
         notify: []
         strategy:
           retry: '0'
+          timeout: 20
       - step: build@docker
         name: frontend_build_docker
         displayName: frontend镜像构建
