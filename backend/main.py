@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution
+from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution, law, scheduler
 from app.services.db import init_database, add_indexes_to_existing_db
 from app.services.visitor_manager import visitor_manager
+from app.services.scheduler import start_scheduler, stop_scheduler
 from app.exceptions import BaseException as CustomBaseException, BusinessException, SystemException, ValidationException, ErrorCode
 import os
 import uuid
@@ -126,6 +127,8 @@ app.include_router(search.router, prefix="/api", tags=["search"])
 app.include_router(resume.router, prefix="/api", tags=["resume"])
 app.include_router(notes.router, prefix="/api", tags=["notes"])
 app.include_router(evolution.router, prefix="/api", tags=["evolution"])
+app.include_router(law.router, prefix="/api", tags=["law"])
+app.include_router(scheduler.router, tags=["scheduler"])
 
 # 配置CORS（必须在最后添加，确保最先处理请求）
 app.add_middleware(
@@ -136,11 +139,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 初始化数据库
+# 初始化数据库和调度器
 @app.on_event("startup")
 async def startup_event():
     init_database()
     add_indexes_to_existing_db()
+    start_scheduler()
 
 # 统一异常处理中间件
 @app.exception_handler(Exception)
@@ -198,6 +202,11 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+# 应用关闭事件
+@app.on_event("shutdown")
+async def shutdown_event():
+    stop_scheduler()
 
 if __name__ == "__main__":
     import uvicorn

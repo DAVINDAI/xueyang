@@ -69,6 +69,12 @@ const router = createRouter({
       name: 'noteDetail',
       component: () => import('../views/NoteDetail.vue'),
       meta: { requiresAuth: false }
+    },
+    {
+      path: '/law',
+      name: 'law',
+      component: () => import('../views/LawPage.vue'),
+      meta: { requiresAuth: false }
     }
   ]
 })

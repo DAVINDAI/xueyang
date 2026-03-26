@@ -12,6 +12,7 @@
         <router-link to="/resume/list" class="nav-link">优化历史</router-link>
         <router-link to="/stats" class="nav-link">统计信息</router-link>
         <router-link to="/details" class="nav-link">详情查看</router-link>
+        <router-link to="/law" class="nav-link">法律咨询</router-link>
       </nav>
       <SearchBar />
       <div v-if="isUserLoggedIn" class="user-info">
