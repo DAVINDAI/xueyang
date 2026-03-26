@@ -10,6 +10,10 @@ RUN rm -rf /etc/apt/sources.list.d/* && \
     echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ trixie-security main contrib non-free" >> /etc/apt/sources.list
 
 # 安装系统依赖
+# - gcc/g++: 用于编译 Python 依赖包中需要编译的部分（如 torch、transformers、modelscope 等深度学习库）
+# - make: 用于构建和安装某些依赖包
+# - curl: 用于下载资源（如模型文件、依赖包等）
+# 这些依赖是运行时和安装 Python 依赖包所必需的基础工具
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \

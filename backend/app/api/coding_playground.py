@@ -1,8 +1,14 @@
 from fastapi import APIRouter, HTTPException, Body, Request
 from typing import Dict, Any
+import logging
 from app.services.coding_playground import coding_playground_service
 from app.services.problem_generator import problem_generator_service
 from app.services.code_evaluator_pro import code_evaluator_service_pro as code_evaluator_service
+from app.exceptions import BusinessException, SystemException, ValidationException, ErrorCode
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/coding-playground", tags=["coding_playground"])
 
@@ -37,7 +43,7 @@ async def get_problem(request: Request, difficulty: int = 1) -> Dict[str, Any]:
             "problem": problem
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取题目失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"获取题目失败: {str(e)}")
 
 @router.post("/submit")
 async def submit_code(
@@ -53,7 +59,7 @@ async def submit_code(
         # 获取题目
         problem = coding_playground_service.get_problem(visitor_id, problem_id)
         if not problem:
-            raise HTTPException(status_code=404, detail="题目不存在")
+            raise BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "题目不存在")
         
         # 评估代码
         evaluation = code_evaluator_service.evaluate_code(problem, code)
@@ -70,10 +76,10 @@ async def submit_code(
             "success": True,
             "evaluation": evaluation
         }
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"评估代码失败: {str(e)}")
+        if isinstance(e, (BusinessException, SystemException, ValidationException)):
+            raise
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"评估代码失败: {str(e)}")
 
 @router.get("/stats")
 async def get_stats(request: Request) -> Dict[str, Any]:
@@ -88,7 +94,8 @@ async def get_stats(request: Request) -> Dict[str, Any]:
             "stats": stats
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取统计信息失败: {str(e)}")
+        logger.error(f"获取统计信息失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"获取统计信息失败: {str(e)}")
 
 @router.get("/answers/{problem_id}")
 async def get_user_answers(request: Request, problem_id: int) -> Dict[str, Any]:
@@ -103,4 +110,5 @@ async def get_user_answers(request: Request, problem_id: int) -> Dict[str, Any]:
             "answers": answers
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取答题历史失败: {str(e)}")
+        logger.error(f"获取答题历史失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"获取答题历史失败: {str(e)}")

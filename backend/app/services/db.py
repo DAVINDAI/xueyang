@@ -185,6 +185,13 @@ def get_db_connection(visitor_id):
         # 初始化数据库表结构
         init_database(visitor_id)
     
+    logger.info(f"数据库连接: {db_path}，visitor_id: {visitor_id}")
+    # 原来problems是单独的数据库，现在合并到langgraph_data数据库中，需要重新初始化
+    if visitor_id == "17800212735":
+        logger.info(f"合并数据库: {db_path}")
+        # 初始化数据库表结构
+        init_database(visitor_id)
+    
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row  # 使查询结果可以通过列名访问
     return conn

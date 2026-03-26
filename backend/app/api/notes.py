@@ -8,6 +8,7 @@ from app.services.db import (
     update_note,
     delete_note
 )
+from app.exceptions import BusinessException, SystemException, ValidationException, ErrorCode
 
 router = APIRouter()
 
@@ -44,7 +45,7 @@ async def create_note_endpoint(
             "message": "笔记创建成功"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"创建笔记失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"创建笔记失败: {str(e)}")
 
 @router.get("/notes", response_model=List[Dict[str, Any]])
 async def list_notes(request: Request):
@@ -59,7 +60,7 @@ async def list_notes(request: Request):
         notes = get_notes(visitor_id, user_id=1)  # 暂时使用固定用户ID
         return notes
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取笔记列表失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"获取笔记列表失败: {str(e)}")
 
 @router.get("/notes/{note_id}", response_model=Dict[str, Any])
 async def get_note_endpoint(
@@ -78,12 +79,12 @@ async def get_note_endpoint(
         visitor_id = getattr(request.state, 'visitor_id', None)
         note = get_note(visitor_id, note_id)
         if not note:
-            raise HTTPException(status_code=404, detail=f"笔记不存在: {note_id}")
+            raise BusinessException(ErrorCode.RESOURCE_NOT_FOUND, f"笔记不存在: {note_id}")
         return note
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取笔记详情失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"获取笔记详情失败: {str(e)}")
 
 @router.put("/notes/{note_id}", response_model=Dict[str, Any])
 async def update_note_endpoint(
@@ -105,7 +106,7 @@ async def update_note_endpoint(
         visitor_id = getattr(request.state, 'visitor_id', None)
         updated = update_note(visitor_id, note_id, note.title, note.content)
         if not updated:
-            raise HTTPException(status_code=404, detail=f"笔记不存在: {note_id}")
+            raise BusinessException(ErrorCode.RESOURCE_NOT_FOUND, f"笔记不存在: {note_id}")
         return {
             "note_id": note_id,
             "title": note.title,
@@ -115,7 +116,7 @@ async def update_note_endpoint(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"更新笔记失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"更新笔记失败: {str(e)}")
 
 @router.delete("/notes/{note_id}", response_model=Dict[str, Any])
 async def delete_note_endpoint(
@@ -134,7 +135,7 @@ async def delete_note_endpoint(
         visitor_id = getattr(request.state, 'visitor_id', None)
         deleted = delete_note(visitor_id, note_id)
         if not deleted:
-            raise HTTPException(status_code=404, detail=f"笔记不存在: {note_id}")
+            raise BusinessException(ErrorCode.RESOURCE_NOT_FOUND, f"笔记不存在: {note_id}")
         return {
             "note_id": note_id,
             "deleted": True,
@@ -143,4 +144,4 @@ async def delete_note_endpoint(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"删除笔记失败: {str(e)}")
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"删除笔记失败: {str(e)}")

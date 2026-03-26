@@ -4,11 +4,13 @@ from fastapi.responses import JSONResponse
 from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution
 from app.services.db import init_database, add_indexes_to_existing_db
 from app.services.visitor_manager import visitor_manager
+from app.exceptions import BaseException as CustomBaseException, BusinessException, SystemException, ValidationException, ErrorCode
 import os
 import uuid
 from dotenv import load_dotenv
 import jwt
 import logging
+import traceback
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -139,6 +141,53 @@ app.add_middleware(
 async def startup_event():
     init_database()
     add_indexes_to_existing_db()
+
+# 统一异常处理中间件
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    # 生成请求唯一标识
+    request_id = str(uuid.uuid4())
+    
+    # 记录完整的堆栈信息
+    logger.error(f"请求ID: {request_id}")
+    logger.error(f"请求路径: {request.url}")
+    logger.error(f"异常类型: {type(exc).__name__}")
+    logger.error(f"异常消息: {str(exc)}")
+    logger.error(f"堆栈信息:\n{traceback.format_exc()}")
+    
+    # 根据异常类型返回不同的响应
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "code": exc.status_code * 100 + 1,
+                "message": exc.detail,
+                "error_type": "http_error",
+                "request_id": request_id
+            }
+        )
+    elif isinstance(exc, CustomBaseException):
+        return JSONResponse(
+            status_code=400 if exc.error_type == "business_error" or exc.error_type == "validation_error" else 500,
+            content={
+                "code": exc.code,
+                "message": exc.message,
+                "error_type": exc.error_type,
+                "request_id": request_id,
+                **exc.kwargs
+            }
+        )
+    else:
+        # 系统错误
+        return JSONResponse(
+            status_code=400,  # 不返回500，统一返回400或其他自定义状态码
+            content={
+                "code": ErrorCode.SYSTEM_ERROR,
+                "message": "系统服务暂时不可用，请稍后重试",
+                "error_type": "system_error",
+                "request_id": request_id
+            }
+        )
 
 # 根路径
 @app.get("/")
