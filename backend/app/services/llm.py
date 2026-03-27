@@ -4,6 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from app.config import MODEL_CONFIGS
 from app.services.memory import memory_service
 from app.services.tokenizer import tokenizer_service
+from app.services.prompt_manager import prompt_manager_service
 import os
 import time
 import logging
@@ -97,8 +98,9 @@ class LLMService:
                 memory_service.load_memory_from_messages(memory, messages)
             
             # 使用 LCEL 构建对话链
+            system_prompt = prompt_manager_service.get_prompt("system_prompt", "你是一个乐于助人的AI助手。")
             prompt = ChatPromptTemplate.from_messages([
-                ("system", "你是一个乐于助人的AI助手。"),
+                ("system", system_prompt),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "{input}")
             ])
@@ -190,8 +192,9 @@ class LLMService:
                 memory_service.load_memory_from_messages(memory, messages)
             
             # 使用 LCEL 构建对话链
+            system_prompt = prompt_manager_service.get_prompt("system_prompt", "你是一个乐于助人的AI助手。")
             prompt = ChatPromptTemplate.from_messages([
-                ("system", "你是一个乐于助人的AI助手。"),
+                ("system", system_prompt),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "{input}")
             ])

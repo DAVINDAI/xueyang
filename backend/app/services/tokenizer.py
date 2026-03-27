@@ -1,5 +1,6 @@
 import tiktoken
 from app.config import MODEL_CONFIGS, COMPRESSION_CONFIG
+from app.services.prompt_manager import prompt_manager_service
 from typing import List, Dict, Any
 
 # Token计算服务
@@ -71,7 +72,8 @@ class TokenizerService:
     
     def generate_compression_prompt(self, messages: List[Dict[str, Any]]) -> str:
         """生成压缩提示"""
-        prompt = "请将以下对话压缩为约1000个token的摘要，保留关键信息和上下文：\n\n"
+        compression_prompt = prompt_manager_service.get_prompt("compression_prompt", "请将以下对话压缩为约1000个token的摘要，保留关键信息和上下文：\n\n")
+        prompt = compression_prompt
         
         if messages is not None:
             for message in messages:

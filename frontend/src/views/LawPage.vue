@@ -1,6 +1,6 @@
 <template>
   <div class="law-page">
-    <h1>法律咨询</h1>
+    <h1>法律文档</h1>
     
     <div class="law-docs-container">
       <div v-if="loading" class="loading">

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution, law, scheduler
+from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution, law, scheduler, prompts
 from app.services.db import init_database, add_indexes_to_existing_db
 from app.services.visitor_manager import visitor_manager
 from app.services.scheduler import start_scheduler, stop_scheduler
@@ -129,6 +129,7 @@ app.include_router(notes.router, prefix="/api", tags=["notes"])
 app.include_router(evolution.router, prefix="/api", tags=["evolution"])
 app.include_router(law.router, prefix="/api", tags=["law"])
 app.include_router(scheduler.router, tags=["scheduler"])
+app.include_router(prompts.router, prefix="/api", tags=["prompts"])
 
 # 配置CORS（必须在最后添加，确保最先处理请求）
 app.add_middleware(
