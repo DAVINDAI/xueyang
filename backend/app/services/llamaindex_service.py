@@ -3,60 +3,16 @@ import logging
 from typing import List, Dict, Any, Optional
 from llama_index.core import VectorStoreIndex, Document, StorageContext, Settings
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.embeddings import BaseEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
 import chromadb
 from app.services.db import get_chat_sessions, get_chat_messages
+from app.services.modelscope_embedding import ModelScopeEmbedding
 
 # 数据存储基础路径
 data_base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-class ModelScopeEmbedding(BaseEmbedding):
-    model_name: str = "BAAI/bge-small-zh-v1.5"
-    
-    def __init__(self, model_name: str = "BAAI/bge-small-zh-v1.5", **kwargs):
-        super().__init__(**kwargs)
-        self.model_name = model_name
-        self._model = None
-        self._tokenizer = None
-        self._load_model()
-    
-    def _load_model(self):
-        try:
-            from modelscope import AutoModel, AutoTokenizer
-            logger.info(f"Loading model: {self.model_name}")
-            self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self._model = AutoModel.from_pretrained(self.model_name)
-            logger.info("Model loaded successfully")
-        except Exception as e:
-            logger.error(f"Failed to load model: {e}")
-            raise
-    
-    def _get_query_embedding(self, query: str) -> List[float]:
-        return self._get_text_embedding(query)
-    
-    async def _aget_query_embedding(self, query: str) -> List[float]:
-        return self._get_query_embedding(query)
-    
-    def _get_text_embedding(self, text: str) -> List[float]:
-        import torch
-        inputs = self._tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
-        with torch.no_grad():
-            outputs = self._model(**inputs)
-            embeddings = outputs.last_hidden_state.mean(dim=1)
-        return embeddings[0].tolist()
-    
-    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        return [self._get_text_embedding(text) for text in texts]
-    
-    async def _aget_text_embedding(self, text: str) -> List[float]:
-        return self._get_text_embedding(text)
-    
-    async def _aget_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        return [self._get_text_embedding(text) for text in texts]
 
 class LlamaIndexService:
     def __init__(self, visitor_id: str = "default"):
@@ -78,7 +34,6 @@ class LlamaIndexService:
             chroma_collection = chroma_client.get_or_create_collection("chat_history")
             
             vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-            storage_context = StorageContext.from_defaults(vector_store=vector_store)
             
             api_key = os.getenv("DASHSCOPE_API_KEY")
             if not api_key:
@@ -104,11 +59,12 @@ class LlamaIndexService:
             
             # Set global embedding model to avoid conflicts
             Settings.embed_model = self.embed_model
+            Settings.node_parser = self.node_parser
             
+            # 自动加载已有的索引数据
             try:
                 self.index = VectorStoreIndex.from_vector_store(
                     vector_store=vector_store,
-                    storage_context=storage_context,
                     embed_model=self.embed_model
                 )
                 logger.info("Loaded existing vector index")
@@ -116,10 +72,9 @@ class LlamaIndexService:
                 logger.info(f"Creating new vector index: {e}")
                 self.index = VectorStoreIndex(
                     [],
-                    storage_context=storage_context,
                     embed_model=self.embed_model
                 )
-              
+            
             logger.info("LlamaIndex service initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize LlamaIndex service: {e}")
@@ -158,29 +113,32 @@ class LlamaIndexService:
     
     def build_index(self, force_rebuild: bool = False):
         try:
-            if force_rebuild or self.index is None:
-                documents = self._extract_chat_history()
-                
-                if not documents:
-                    logger.warning("No documents found to build index")
-                    return
-                
-                chroma_client = chromadb.PersistentClient(path=self.chroma_persist_dir)
-                chroma_collection = chroma_client.get_or_create_collection("chat_history")
-                vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-                storage_context = StorageContext.from_defaults(vector_store=vector_store)
-                
-                self.index = VectorStoreIndex.from_documents(
+            # 检查是否需要构建索引
+            # 1. 强制重建
+            # 2. 索引不存在
+            # 3. 始终构建（首次初始化时）
+            # 注意：由于我们在初始化时调用此方法，所以不需要检查索引是否为空
+            documents = self._extract_chat_history()
+            
+            if not documents:
+                logger.warning("No documents found to build index")
+                return
+            
+            # 只有当有文档时才重建索引
+            chroma_client = chromadb.PersistentClient(path=self.chroma_persist_dir)
+            chroma_collection = chroma_client.get_or_create_collection("chat_history")
+            vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+            storage_context = StorageContext.from_defaults(vector_store=vector_store)
+            
+            self.index = VectorStoreIndex.from_documents(
                     documents,
                     storage_context=storage_context,
                     embed_model=self.embed_model,
                     transformations=[self.node_parser],
                     show_progress=True
                 )
-                
-                logger.info(f"Successfully built index with {len(documents)} documents")
-            else:
-                logger.info("Index already exists, skipping rebuild")
+            
+            logger.info(f"Successfully built index with {len(documents)} documents")
         except Exception as e:
             logger.error(f"Failed to build index: {e}")
             raise
@@ -216,6 +174,7 @@ class LlamaIndexService:
             
             if documents:
                 for doc in documents:
+                    # 插入文档
                     self.index.insert(doc)
                 
                 logger.info(f"Updated index with {len(documents)} documents from session {session_id} for visitor: {self.visitor_id}")
@@ -224,9 +183,10 @@ class LlamaIndexService:
     
     def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         try:
-            # Always build index before search to ensure data is available
-            logger.info("Building index before search...")
-            self.build_index()
+            # Only build index if it doesn't exist
+            if not self.index:
+                logger.info("Index not found, building index...")
+                self.build_index()
             
             if not self.index:
                 logger.warning("Index is still not available after build attempt")

@@ -4,7 +4,7 @@
 """
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
-from app.services.scheduler import get_jobs, add_job, remove_job, pause_job, resume_job, capture_website_screenshot
+from app.services.scheduler import get_jobs, add_job, remove_job, pause_job, resume_job, run_scheduled_law_fetch_task
 import logging
 
 logger = logging.getLogger(__name__)
@@ -53,10 +53,10 @@ async def add_scheduled_job(job_id: str, trigger: str, **kwargs):
     """
     try:
         # 这里可以根据需要添加不同类型的任务
-        # 目前只支持网站截图任务
-        if job_id == "capture_flk_screenshot":
+        # 目前只支持法律法规获取任务
+        if job_id == "fetch_law_documents":
             job = add_job(
-                capture_website_screenshot,
+                run_scheduled_law_fetch_task,
                 trigger,
                 job_id,
                 **kwargs

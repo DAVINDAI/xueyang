@@ -18,6 +18,14 @@ download_dir = os.path.join(
 )
 os.makedirs(download_dir, exist_ok=True)
 
+# 确保截图目录存在
+screenshot_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    "data",
+    "screenshots"
+)
+os.makedirs(screenshot_dir, exist_ok=True)
+
 
 class LawScraperService:
     """
@@ -33,58 +41,6 @@ class LawScraperService:
             str: 法律文档存储目录路径
         """
         return download_dir
-    
-    async def fetch_law_links(self):
-        """
-        抓取国家法律法规数据库页面上的法律链接
-        
-        返回:
-            list: 法律链接列表
-        """
-        logger.info("开始抓取法律链接")
-        
-        try:
-            async with async_playwright() as p:
-                # 启动浏览器
-                browser = await p.chromium.launch(
-                    headless=True,
-                    args=['--disable-blink-features=AutomationControlled']
-                )
-                
-                # 创建页面
-                page = await browser.new_page()
-                
-                # 访问网站
-                await page.goto("https://flk.npc.gov.cn/index", 
-                              wait_until='domcontentloaded', 
-                              timeout=60000)
-                
-                # 等待页面加载
-                await page.wait_for_timeout(2000)
-                
-                # 抓取法律链接
-                # 这里需要根据实际页面结构调整选择器
-                law_links = []
-                
-                # 示例：抓取所有a标签中的链接
-                links = await page.query_selector_all('a')
-                for link in links:
-                    href = await link.get_attribute('href')
-                    if href and 'law' in href:
-                        full_url = href if href.startswith('http') else f"https://flk.npc.gov.cn{href}"
-                        law_links.append(full_url)
-                
-                # 关闭浏览器
-                await browser.close()
-                
-                logger.info(f"成功抓取到 {len(law_links)} 个法律链接")
-                return law_links
-                
-        except Exception as e:
-            logger.error(f"抓取法律链接失败: {str(e)}")
-            import traceback
-            logger.error(f"堆栈追踪: {traceback.format_exc()}")
-            return []
     
     def get_available_law_docs(self):
         """
@@ -123,49 +79,24 @@ class LawScraperService:
             logger.error(f"堆栈追踪: {traceback.format_exc()}")
             return []
     
-    async def fetch_law_categories(self):
+    async def fetch_law_documents(self):
         """
-        获取法律法规分类列表
-        
-        返回:
-            list: 法律法规分类列表，包含分类名称和链接
+        使用Playwright获取国家法律法规数据库的法律文档
         """
-        logger.info("获取法律法规分类列表")
-        
-        # 这里可以根据实际需求实现分类抓取逻辑
-        # 暂时返回空列表
-        return []
-    
-    async def fetch_law_documents(self, category_url):
-        """
-        获取特定分类下的法律文档列表
-        
-        参数:
-            category_url: 法律法规分类页面URL
-            
-        返回:
-            list: 法律文档列表，包含文档名称和链接
-        """
-        logger.info(f"获取分类下的法律文档列表: {category_url}")
-        
-        # 这里可以根据实际需求实现文档列表抓取逻辑
-        # 暂时返回空列表
-        return []
-    
-    async def download_law_pdf(self, law_url):
-        """
-        下载法律PDF文档
-        
-        参数:
-            law_url: 法律文档链接
-        
-        返回:
-            str: 下载的PDF文件路径
-        """
-        logger.info(f"开始下载法律PDF: {law_url}")
+        logger.info("开始执行法律法规获取任务")
         
         try:
+            from playwright.async_api import async_playwright
+            
             async with async_playwright() as p:
+                # 确保下载目录存在
+                download_dir = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                    "data",
+                    "downloads"
+                )
+                os.makedirs(download_dir, exist_ok=True)
+                
                 # 启动浏览器
                 browser = await p.chromium.launch(
                     headless=True,
@@ -175,58 +106,129 @@ class LawScraperService:
                 # 创建页面
                 page = await browser.new_page()
                 
-                # 设置下载目录
-                await page.context.set_default_timeout(60000)
-                
-                # 访问法律文档页面
-                await page.goto(law_url, 
+                # 访问网站
+                await page.goto("https://flk.npc.gov.cn/index", 
                               wait_until='domcontentloaded', 
                               timeout=60000)
                 
                 # 等待页面加载
                 await page.wait_for_timeout(2000)
                 
-                # 查找下载按钮并点击
-                # 这里需要根据实际页面结构调整选择器
-                try:
-                    # 示例：查找下载按钮并点击
-                    download_button = await page.query_selector('button:has-text("下载")')
-                    if download_button:
-                        # 点击下载按钮
-                        await download_button.click()
+                # 生成截图文件名
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                screenshot_path = os.path.join(screenshot_dir, f"flk_{timestamp}.png")
+                
+                # 截图
+                await page.screenshot(
+                    path=screenshot_path,
+                    full_page=True
+                )
+
+                # 找到页面上list-title 的所有元素
+                list_titles = await page.query_selector_all(".list-title")
+                for title in list_titles:
+                    title_text = await title.text_content()
+                    logger.info(f"找到标题: {title_text}")
+                    # 这里可以添加将标题保存到数据库的逻辑
+                    # 例如：await save_to_db(title_text)
+                    # 检查元素是否可见
+                    is_visible = await title.is_visible()
+                    if not is_visible:
+                        logger.warning(f"标题 '{title_text}' 不可见，跳过")
+                        continue
+                    # 滚动到元素位置，确保元素可见
+                    await title.scroll_into_view_if_needed()
+                    # 点击标题
+                    await title.click()
+                    # 等待新的页面打开
+                    await page.wait_for_timeout(2000)
+                    # 获取所有打开的页面
+                    pages = page.context.pages
+                    # 切换到最新的页面（新打开的页面）
+                    if len(pages) > 1:
+                        new_page = pages[-1]
+                        # 等待页面加载
+                        await new_page.wait_for_load_state('domcontentloaded')
                         
-                        # 等待下载完成
-                        async with page.expect_download() as download_info:
-                            # 等待下载开始
-                            download = await download_info.value
+                        # 在新页面上也注册下载事件处理器
+                        async def handle_new_page_download(download):
+                            # 获取下载的文件路径
+                            download_path = await download.path()
+                            # 重命名文件到指定目录
+                            import shutil
+                            new_path = os.path.join(download_dir, download.suggested_filename)
+                            # 如果文件已存在，先删除
+                            if os.path.exists(new_path):
+                                logger.warning(f"文件已存在: {new_path}，删除旧文件")
+                                os.remove(new_path)
+                            shutil.move(download_path, new_path)
+                            logger.info(f"下载文件保存到: {new_path}")
                             
-                            # 生成下载文件名
-                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                            file_name = f"law_{timestamp}.pdf"
-                            download_path = os.path.join(download_dir, file_name)
-                            
-                            # 保存下载的文件
-                            await download.save_as(download_path)
-                            
-                            logger.info(f"法律PDF下载成功，保存路径: {download_path}")
-                            return download_path
-                    else:
-                        logger.warning(f"未找到下载按钮: {law_url}")
-                        return None
+                            # 为PDF文件生成Markdown格式并与LlamaIndex集成
+                            from app.services.pdf_processor import pdf_processor_service
+                            if new_path.lower().endswith('.pdf'):
+                                # 使用新实现的方法处理PDF文件，指定集合名称为法律文档的英文
+                                result = pdf_processor_service.process_pdf_with_llamaindex(new_path, "law_documents")
+                                if result:
+                                    logger.info(result)
+                                else:
+                                    logger.warning("PDF处理失败")
+
+                        new_page.on("download", handle_new_page_download)
                         
-                except Exception as e:
-                    logger.error(f"点击下载按钮失败: {str(e)}")
-                    return None
-                finally:
-                    # 关闭浏览器
-                    await browser.close()
-                    
+                        # 如果有 .right .tabs 公报原版 按钮 先点击该按钮
+                        if await new_page.query_selector(".right .tabs:has-text(\"公报原版\")"):
+                            logger.info("找到《公报原版》按钮，下载PDF文件")
+                            # 点击公报原版按钮
+                            await new_page.click(".right .tabs:has-text(\"公报原版\")")
+                        else:
+                            # 没有这个按钮，跳过下载
+                            logger.warning("未找到《公报原版》按钮，跳过下载")
+                            continue
+
+
+                        # 鼠标hover到download 按钮
+                        await new_page.hover(".download")
+                        # 等待页面加载
+                        await new_page.wait_for_timeout(1000)
+                        
+                        # 截图
+                        await new_page.screenshot(
+                            path=os.path.join(screenshot_dir, f"flk_{timestamp}_{title_text.replace(' ', '_')}.png"),
+                            full_page=True
+                        )
+
+                        # 检查click-download元素是否可见
+                        click_download = await new_page.query_selector(".click-download")
+                        if click_download:
+                            is_visible = await click_download.is_visible()
+                            if is_visible:
+                                # 点击click-download 按钮 这里会触发下载文档的动作 保存下载的文档到默认下载目录
+                                await new_page.click(".click-download")
+                                # 等待页面加载
+                                await new_page.wait_for_timeout(5000)
+                            else:
+                                logger.warning("下载按钮不可见，跳过下载")
+                        else:
+                            logger.warning("未找到下载按钮，跳过下载")
+
+                        # 关闭新页面
+                        await new_page.close()
+                
+                # 关闭浏览器
+                await browser.close()
+                
+                logger.info(f"法律法规获取任务完成，截图保存路径: {screenshot_path}")
+                
+        except NotImplementedError:
+            # 环境不支持 Playwright（如沙箱环境）
+            logger.warning("法律法规获取任务失败: 当前环境不支持 Playwright 浏览器操作")
+            logger.warning("这通常是由于沙箱环境限制或缺少必要的依赖导致的")
+            logger.warning("任务将按照计划继续执行，但可能会在相同环境中失败")
         except Exception as e:
-            logger.error(f"下载法律PDF失败: {str(e)}")
+            logger.error(f"法律法规获取失败: {str(e)}")
             import traceback
             logger.error(f"堆栈追踪: {traceback.format_exc()}")
-            return None
-
 
 # 创建服务实例
 law_scraper_service = LawScraperService()

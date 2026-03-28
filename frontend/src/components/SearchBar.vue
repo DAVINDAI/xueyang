@@ -70,7 +70,7 @@ import { ChatDotRound, Connection } from '@element-plus/icons-vue';
 
 const router = useRouter();
 const searchBarRef = ref(null);
-const searchQuery = ref('');
+const searchQuery = ref('良法善治');
 const searchResults = ref([]);
 const loading = ref(false);
 const error = ref('');
