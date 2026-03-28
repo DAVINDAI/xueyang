@@ -110,7 +110,7 @@ const loadNotes = async () => {
     notes.value = data
   } catch (error) {
     console.error('加载笔记失败:', error)
-    ElMessage.error('加载笔记失败')
+    ElMessage.error(error.message || '加载笔记失败')
   }
 }
 
@@ -192,7 +192,7 @@ const saveNote = async () => {
     await loadNotes()
   } catch (error) {
     console.error('保存笔记失败:', error)
-    ElMessage.error('保存笔记失败')
+    ElMessage.error(error.message || '保存笔记失败')
   }
 }
 
@@ -222,7 +222,7 @@ const deleteNote = async (noteId) => {
     }
   } catch (error) {
     console.error('删除笔记失败:', error)
-    ElMessage.error('删除笔记失败')
+    ElMessage.error(error.message || '删除笔记失败')
   }
 }
 

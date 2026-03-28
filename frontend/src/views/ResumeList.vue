@@ -132,7 +132,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DocumentCopy, Plus, Search, View, Delete } from '@element-plus/icons-vue'
 import { marked } from 'marked'
-import { resumeApi } from '../api/resumeApi'
+import { resumeApi } from '../api'
 
 const router = useRouter()
 const loading = ref(false)
@@ -180,7 +180,7 @@ const loadOptimizations = async () => {
     total.value = data.length
   } catch (error) {
     console.error('加载优化结果失败:', error)
-    ElMessage.error('加载优化结果失败')
+    ElMessage.error(error.message || '加载优化结果失败')
   } finally {
     loading.value = false
   }
@@ -194,7 +194,7 @@ const viewDetails = async (id) => {
     dialogVisible.value = true
   } catch (error) {
     console.error('获取详情失败:', error)
-    ElMessage.error('获取详情失败')
+    ElMessage.error(error.message || '获取详情失败')
   }
 }
 
@@ -219,7 +219,7 @@ const deleteOptimization = async (id) => {
     await loadOptimizations()
   } catch (error) {
     console.error('删除失败:', error)
-    ElMessage.error('删除失败')
+    ElMessage.error(error.message || '删除失败')
   }
 }
 

@@ -75,6 +75,12 @@ const router = createRouter({
       name: 'law',
       component: () => import('../views/LawPage.vue'),
       meta: { requiresAuth: false }
+    },
+    {
+      path: '/assistant',
+      name: 'assistant',
+      component: () => import('../views/AssistantPage.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

@@ -3,7 +3,7 @@
 """
 
 
-class BaseException(Exception):
+class CustomException(Exception):
     """
     基础异常类，所有自定义异常都应继承此类
     """
@@ -15,7 +15,7 @@ class BaseException(Exception):
         super().__init__(message)
 
 
-class BusinessException(BaseException):
+class BusinessException(CustomException):
     """
     业务异常类，用于处理业务逻辑错误
     """
@@ -23,7 +23,7 @@ class BusinessException(BaseException):
         super().__init__(code, message, error_type, **kwargs)
 
 
-class SystemException(BaseException):
+class SystemException(CustomException):
     """
     系统异常类，用于处理系统级错误
     """
@@ -31,7 +31,7 @@ class SystemException(BaseException):
         super().__init__(code, message, error_type, **kwargs)
 
 
-class ValidationException(BaseException):
+class ValidationException(CustomException):
     """
     验证异常类，用于处理参数验证错误
     """

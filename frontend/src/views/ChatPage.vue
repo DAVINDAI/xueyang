@@ -414,7 +414,7 @@ const loadSessions = async () => {
     }
   } catch (error) {
     console.error('加载会话列表失败:', error)
-    ElMessage.error('加载会话列表失败')
+    ElMessage.error(error.message || '加载会话列表失败')
   }
 }
 
@@ -450,7 +450,7 @@ const selectSession = async (session) => {
     highlightAllCodeBlocks()
   } catch (error) {
     console.error('加载消息失败:', error)
-    ElMessage.error('加载消息失败')
+    ElMessage.error(error.message || '加载消息失败')
   }
 }
 
@@ -477,7 +477,7 @@ const createSession = async () => {
     })
   } catch (error) {
     console.error('创建会话失败:', error)
-    ElMessage.error('创建会话失败')
+    ElMessage.error(error.message || '创建会话失败')
   }
 }
 
@@ -509,7 +509,7 @@ const confirmRename = async () => {
       })
     } catch (error) {
       console.error('重命名会话失败:', error)
-      ElMessage.error('重命名会话失败')
+      ElMessage.error(error.message || '重命名会话失败')
     }
   }
 }
@@ -588,7 +588,7 @@ const sendMessage = async () => {
       },
       (error) => {
         console.error('发送消息失败:', error)
-        ElMessage.error('发送消息失败')
+        ElMessage.error(error.message || '发送消息失败')
         // 失败时移除临时添加的消息
         messages.value = messages.value.filter(m => m.id !== tempUserMessage.id && m.id !== tempAiMessage.id)
         inputMessage.value = tempInput
@@ -596,7 +596,7 @@ const sendMessage = async () => {
     )
   } catch (error) {
     console.error('发送消息失败:', error)
-    ElMessage.error('发送消息失败')
+    ElMessage.error(error.message || '发送消息失败')
     // 失败时移除临时添加的消息
     messages.value = messages.value.filter(m => m.id !== tempUserMessage.id && m.id !== tempAiMessage.id)
     inputMessage.value = tempInput

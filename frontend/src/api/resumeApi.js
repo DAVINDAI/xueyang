@@ -1,4 +1,4 @@
-import api from './index'
+import api from './api'
 
 // 简历优化API
 export const resumeApi = {

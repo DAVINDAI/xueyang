@@ -1,11 +1,15 @@
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution, law, scheduler, prompts
+from app.api import stats, details, chat, search, resume, auth, notes, coding_playground, evolution, law, scheduler, prompts, assistant
 from app.services.db import init_database, add_indexes_to_existing_db
 from app.services.visitor_manager import visitor_manager
 from app.services.scheduler import start_scheduler, stop_scheduler
-from app.exceptions import BaseException as CustomBaseException, BusinessException, SystemException, ValidationException, ErrorCode
+from app.exceptions import CustomException
+from app.exceptions import BusinessException
+from app.exceptions import SystemException
+from app.exceptions import ValidationException
+from app.exceptions import ErrorCode
 import os
 import uuid
 from dotenv import load_dotenv
@@ -58,7 +62,7 @@ async def auth_middleware(request: Request, call_next):
     # 获取Authorization头
     auth_header = request.headers.get("Authorization")
     
-    # 如果有Bearer token，验证token并设置visitor_id为phone
+    # 如果有Bearer token，验证token并设置visitor_id为用户名
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         
@@ -66,11 +70,11 @@ async def auth_middleware(request: Request, call_next):
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             request.state.user = payload
-            # 为登录用户设置visitor_id为手机号
-            phone = payload.get("sub")
-            if phone:
-                request.state.visitor_id = phone
-                logger.info(f"为登录用户设置visitor_id为手机号: {phone}")
+            # 为登录用户设置visitor_id为用户名
+            username = payload.get("sub")
+            if username:
+                request.state.visitor_id = username
+                logger.info(f"为登录用户设置visitor_id为用户名: {username}")
         except jwt.ExpiredSignatureError:
             return JSONResponse(status_code=401, content={"detail": "认证凭据已过期"})
         except jwt.InvalidTokenError:
@@ -114,6 +118,50 @@ app = FastAPI(
     debug=True,
 )
 
+# 自定义异常处理器
+@app.exception_handler(BusinessException)
+@app.exception_handler(SystemException)
+@app.exception_handler(ValidationException)
+async def custom_exception_handler(request: Request, exc: CustomException):
+    visitor_id = getattr(request.state, "visitor_id", "unknown")
+    logger.error(f"请求ID: {visitor_id}")
+    logger.error(f"请求路径: {request.url}")
+    logger.error(f"异常类型: {type(exc).__name__}")
+    logger.error(f"异常消息: {str(exc)}")
+    logger.error(f"堆栈信息:\n{traceback.format_exc()}")
+    return JSONResponse(
+        status_code=400 if exc.error_type == "business_error" or exc.error_type == "validation_error" else 500,
+        content={
+            "code": exc.code,
+            "message": exc.message,
+            "error_type": exc.error_type,
+            **exc.kwargs
+        }
+    )
+
+# 全局异常处理器（处理所有未被捕获的异常）
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    request_id = str(uuid.uuid4())
+    visitor_id = getattr(request.state, "visitor_id", "unknown")
+    
+    logger.error(f"请求ID: {request_id}")
+    logger.error(f"访客ID: {visitor_id}")
+    logger.error(f"请求路径: {request.url}")
+    logger.error(f"异常类型: {type(exc).__name__}")
+    logger.error(f"异常消息: {str(exc)}")
+    logger.error(f"堆栈信息:\n{traceback.format_exc()}")
+    
+    return JSONResponse(
+        status_code=400,
+        content={
+            "code": ErrorCode.SYSTEM_ERROR,
+            "message": "系统服务暂时不可用，请稍后重试",
+            "error_type": "system_error",
+            "request_id": request_id
+        }
+    )
+
 # 添加身份校验中间件（在CORS之后）
 app.middleware("http")(auth_middleware)
 
@@ -128,8 +176,9 @@ app.include_router(resume.router, prefix="/api", tags=["resume"])
 app.include_router(notes.router, prefix="/api", tags=["notes"])
 app.include_router(evolution.router, prefix="/api", tags=["evolution"])
 app.include_router(law.router, prefix="/api", tags=["law"])
-app.include_router(scheduler.router, tags=["scheduler"])
+app.include_router(scheduler.router, prefix="/api", tags=["scheduler"])
 app.include_router(prompts.router, prefix="/api", tags=["prompts"])
+app.include_router(assistant.router, prefix="/api", tags=["assistant"])
 
 # 配置CORS（必须在最后添加，确保最先处理请求）
 app.add_middleware(
@@ -147,52 +196,6 @@ async def startup_event():
     add_indexes_to_existing_db()
     start_scheduler()
 
-# 统一异常处理中间件
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    # 生成请求唯一标识
-    request_id = str(uuid.uuid4())
-    
-    # 记录完整的堆栈信息
-    logger.error(f"请求ID: {request_id}")
-    logger.error(f"请求路径: {request.url}")
-    logger.error(f"异常类型: {type(exc).__name__}")
-    logger.error(f"异常消息: {str(exc)}")
-    logger.error(f"堆栈信息:\n{traceback.format_exc()}")
-    
-    # 根据异常类型返回不同的响应
-    if isinstance(exc, HTTPException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={
-                "code": exc.status_code * 100 + 1,
-                "message": exc.detail,
-                "error_type": "http_error",
-                "request_id": request_id
-            }
-        )
-    elif isinstance(exc, CustomBaseException):
-        return JSONResponse(
-            status_code=400 if exc.error_type == "business_error" or exc.error_type == "validation_error" else 500,
-            content={
-                "code": exc.code,
-                "message": exc.message,
-                "error_type": exc.error_type,
-                "request_id": request_id,
-                **exc.kwargs
-            }
-        )
-    else:
-        # 系统错误
-        return JSONResponse(
-            status_code=400,  # 不返回500，统一返回400或其他自定义状态码
-            content={
-                "code": ErrorCode.SYSTEM_ERROR,
-                "message": "系统服务暂时不可用，请稍后重试",
-                "error_type": "system_error",
-                "request_id": request_id
-            }
-        )
 
 # 根路径
 @app.get("/")

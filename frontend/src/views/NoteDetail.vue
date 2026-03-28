@@ -98,7 +98,7 @@ const loadNote = async () => {
     note.value = data
   } catch (error) {
     console.error('加载笔记失败:', error)
-    ElMessage.error('加载笔记失败')
+    ElMessage.error(error.message || '加载笔记失败')
   } finally {
     loading.value = false
   }
@@ -219,7 +219,7 @@ const saveEdit = async () => {
     await loadNote()
   } catch (error) {
     console.error('更新笔记失败:', error)
-    ElMessage.error('更新笔记失败')
+    ElMessage.error(error.message || '更新笔记失败')
   }
 }
 
@@ -238,7 +238,7 @@ const deleteNote = async () => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除笔记失败:', error)
-      ElMessage.error('删除笔记失败')
+      ElMessage.error(error.message || '删除笔记失败')
     }
   }
 }

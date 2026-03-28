@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api import chat, coding_playground, details, search, stats, resume, notes, auth, evolution
+from app.api import chat, coding_playground, details, search, stats, resume, notes, auth, evolution, assistant
 
 api_router = APIRouter()
 
@@ -12,3 +12,4 @@ api_router.include_router(stats.router)
 api_router.include_router(resume.router)
 api_router.include_router(notes.router)
 api_router.include_router(evolution.router)
+api_router.include_router(assistant.router)

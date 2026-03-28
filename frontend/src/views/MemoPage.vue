@@ -113,7 +113,7 @@ const loadMemos = async () => {
     memos.value = data
   } catch (error) {
     console.error('加载备忘录失败:', error)
-    ElMessage.error('加载备忘录失败')
+    ElMessage.error(error.message || '加载备忘录失败')
   }
 }
 
@@ -146,7 +146,7 @@ const deleteMemo = async (memoId) => {
     await loadMemos()
   } catch (error) {
     console.error('删除备忘录失败:', error)
-    ElMessage.error('删除备忘录失败')
+    ElMessage.error(error.message || '删除备忘录失败')
   }
 }
 

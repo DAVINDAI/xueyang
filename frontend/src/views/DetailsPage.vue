@@ -225,7 +225,7 @@ const confirmRename = async () => {
       })
     } catch (error) {
       console.error('重命名会话失败:', error)
-      ElMessage.error('重命名会话失败')
+      ElMessage.error(error.message || '重命名会话失败')
     }
   }
 }
@@ -253,7 +253,7 @@ const confirmDelete = async () => {
       })
     } catch (error) {
       console.error('删除会话失败:', error)
-      ElMessage.error('删除会话失败')
+      ElMessage.error(error.message || '删除会话失败')
     }
   }
 }

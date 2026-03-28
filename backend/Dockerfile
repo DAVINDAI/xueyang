@@ -66,11 +66,17 @@ FROM big-deps
 # 复制应用代码
 COPY . .
 
+# 复制数据库迁移脚本
+COPY docker-entrypoint.sh /app/
+
 # 创建数据目录
 RUN mkdir -p /app/data /app/results
+
+# 给entrypoint脚本添加执行权限
+RUN chmod +x /app/docker-entrypoint.sh
 
 # 暴露端口
 EXPOSE 8000
 
-# 启动命令
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 启动命令（使用entrypoint脚本）
+CMD ["/app/docker-entrypoint.sh"]

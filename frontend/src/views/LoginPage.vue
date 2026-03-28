@@ -1,23 +1,13 @@
 <template>
   <div class="login-container">
     <div class="login-form">
-      <h1>登录</h1>
+      <h1>管理员登录</h1>
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef" label-width="80px">
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="loginForm.phone" placeholder="请输入手机号" />
+        <el-form-item label="管理员" prop="username">
+          <el-input v-model="loginForm.username" placeholder="请输入管理员账号" />
         </el-form-item>
-        <el-form-item label="验证码" prop="code">
-          <el-input v-model="loginForm.code" placeholder="请输入验证码">
-            <template #append>
-              <el-button 
-                :disabled="countdown > 0" 
-                @click="sendCode"
-                type="primary"
-              >
-                {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
-              </el-button>
-            </template>
-          </el-input>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="loginForm.password" placeholder="请输入密码" type="password" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="login" :loading="loading" style="width: 100%">
@@ -33,56 +23,24 @@
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { sendVerificationCode, login as loginApi } from '../api/authApi';
+import { authApi } from '../api';
 
 const router = useRouter();
 const loginFormRef = ref(null);
 const loading = ref(false);
-const countdown = ref(0);
 
 const loginForm = reactive({
-  phone: '',
-  code: ''
+  username: '',
+  password: ''
 });
 
 const rules = {
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
-  code: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    { pattern: /^\d{6}$/, message: '请输入6位数字验证码', trigger: 'blur' }
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
   ]
-};
-
-const sendCode = async () => {
-  try {
-    await loginFormRef.value.validateField('phone');
-  } catch (error) {
-    return;
-  }
-
-  try {
-    loading.value = true;
-    await sendVerificationCode(loginForm.phone);
-    ElMessage.success('验证码已发送');
-    startCountdown();
-  } catch (error) {
-    ElMessage.error(error.response?.data?.detail || '发送验证码失败');
-  } finally {
-    loading.value = false;
-  }
-};
-
-const startCountdown = () => {
-  countdown.value = 60;
-  const timer = setInterval(() => {
-    countdown.value--;
-    if (countdown.value <= 0) {
-      clearInterval(timer);
-    }
-  }, 1000);
 };
 
 const login = async () => {
@@ -91,11 +49,12 @@ const login = async () => {
 
   try {
     loading.value = true;
-    const response = await loginApi(loginForm.phone, loginForm.code);
+    const response = await authApi.login(loginForm.username, loginForm.password);
     ElMessage.success('登录成功');
+    // 登录成功后，跳转到首页
     router.push('/');
   } catch (error) {
-    ElMessage.error(error.response?.data?.detail || '登录失败');
+    ElMessage.error(error.response?.data?.message || '登录失败');
   } finally {
     loading.value = false;
   }

@@ -65,7 +65,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../api/index.js';
+import api from '../api';
 import { ChatDotRound, Connection } from '@element-plus/icons-vue';
 
 const router = useRouter();

@@ -10,17 +10,18 @@
         <router-link to="/memo" class="nav-link">备忘录</router-link>
         <router-link to="/resume" class="nav-link">简历优化</router-link>
         <router-link to="/resume/list" class="nav-link">优化历史</router-link>
-        <router-link to="/stats" class="nav-link">统计信息</router-link>
-        <router-link to="/details" class="nav-link">详情查看</router-link>
-        <router-link to="/law" class="nav-link">法律咨询</router-link>
+        <router-link to="/stats" class="nav-link">学习统计</router-link>
+        <router-link to="/details" class="nav-link">学习详情</router-link>
+        <router-link to="/law" class="nav-link">法律助手</router-link>
+        <router-link to="/assistant" class="nav-link">协助助手</router-link>
       </nav>
-      <SearchBar />
+      <SearchBar v-if="!isHomePage" />
       <div v-if="isUserLoggedIn" class="user-info">
-        <span class="user-phone">{{ userPhone }}</span>
+        <span class="user-phone">{{ username }}</span>
         <el-button type="danger" size="small" @click="handleLogout">注销</el-button>
       </div>
       <div v-else class="login-btn">
-        <router-link to="/login" class="nav-link">登录</router-link>
+        <router-link to="/login" class="nav-link">管理员登录</router-link>
       </div>
     </header>
     <main class="app-main">
@@ -40,23 +41,27 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import SearchBar from './components/SearchBar.vue';
-import { logout, isLoggedIn } from './api/authApi';
+import { authApi } from './api';
 
 const router = useRouter();
-const userPhone = ref('');
+const route = useRoute();
+const username = ref('');
 
-const isUserLoggedIn = computed(() => isLoggedIn());
+// 使用ref来存储登录状态，以便手动更新
+const loginStatus = ref(authApi.isLoggedIn());
+const isUserLoggedIn = computed(() => loginStatus.value);
+const isHomePage = computed(() => route.path === '/');
 
-const getUserPhone = () => {
+const getUsername = () => {
   const token = localStorage.getItem('token');
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      userPhone.value = payload.sub || '';
+      username.value = payload.sub || '';
     } catch (error) {
       console.error('解析token失败:', error);
     }
@@ -64,15 +69,28 @@ const getUserPhone = () => {
 };
 
 const handleLogout = () => {
-  logout();
-  userPhone.value = '';
+  authApi.logout();
+  username.value = '';
+  // 更新登录状态
+  loginStatus.value = authApi.isLoggedIn();
   ElMessage.success('注销成功');
   router.push('/login');
 };
 
-onMounted(() => {
+// 监听路由变化，在路由跳转后重新获取用户名和登录状态
+watch(() => route.path, () => {
+  // 更新登录状态
+  loginStatus.value = authApi.isLoggedIn();
   if (isUserLoggedIn.value) {
-    getUserPhone();
+    getUsername();
+  }
+});
+
+onMounted(() => {
+  // 更新登录状态
+  loginStatus.value = authApi.isLoggedIn();
+  if (isUserLoggedIn.value) {
+    getUsername();
   }
 });
 </script>

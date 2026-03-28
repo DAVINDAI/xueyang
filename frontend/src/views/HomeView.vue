@@ -4,6 +4,23 @@
       <h1>学氧学习助手</h1>
       <p class="tagline">让学习像呼吸一样自然</p>
       <p class="description">我们致力于通过人工智能技术，为每一位学习者提供个性化、智能化的学习支持，成为您的终身学习伙伴。</p>
+      
+      <div class="search-container">
+        <div class="search-box">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索内容..."
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <button class="search-btn" @click="handleSearch">
+            <el-icon><Search /></el-icon>
+            搜索
+          </button>
+        </div>
+      </div>
+      
       <div class="core-values">
         <div class="value-item">
           <div class="value-icon">📚</div>
@@ -166,11 +183,29 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { evolutionApi } from '../api/index.js'
 import { Refresh } from '@element-plus/icons-vue'
 import { marked } from 'marked'
 
-// 响应式数据
+const router = useRouter()
+
+const searchQuery = ref('良法善治')
+
+const handleSearch = () => {
+  if (!searchQuery.value.trim()) {
+    ElMessage.warning('请输入搜索内容')
+    return
+  }
+  
+  router.push({
+    path: '/chat',
+    query: { q: searchQuery.value }
+  })
+}
+
 const isLoading = ref(false)
 const resultDialogVisible = ref(false)
 const evolutionResult = ref(null)
@@ -234,6 +269,65 @@ const renderMarkdown = (content) => {
   margin-left: auto;
   margin-right: auto;
   line-height: 1.6;
+}
+
+.search-container {
+  margin: 40px auto;
+  max-width: 800px;
+}
+
+.search-box {
+  display: flex;
+  gap: 15px;
+  background-color: white;
+  padding: 15px;
+  border-radius: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.search-box:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+  background-color: transparent;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.search-btn:hover {
+  background: linear-gradient(135deg, #357abd 0%, #2c5a8a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+}
+
+.search-btn:active {
+  transform: translateY(0);
 }
 
 .core-values {
@@ -442,6 +536,28 @@ const renderMarkdown = (content) => {
   
   .hero .description {
     font-size: 1rem;
+  }
+  
+  .search-container {
+    margin: 30px auto;
+    padding: 0 15px;
+  }
+  
+  .search-box {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+  
+  .search-input {
+    font-size: 1rem;
+    padding: 10px 15px;
+  }
+  
+  .search-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 24px;
   }
   
   .core-values {

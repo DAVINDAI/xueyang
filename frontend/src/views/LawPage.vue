@@ -67,7 +67,7 @@ const handleDownload = (filename) => {
     downloadLawDoc(filename);
     ElMessage.success('开始下载法律文档');
   } catch (error) {
-    ElMessage.error('下载失败，请重试');
+    ElMessage.error(error.message || '下载失败，请重试');
   }
 };
 
@@ -78,7 +78,7 @@ const loadLawDocs = async () => {
     const docs = await getAvailableLawDocs();
     lawDocs.value = docs;
   } catch (error) {
-    ElMessage.error('获取法律文档列表失败');
+    ElMessage.error(error.message || '获取法律文档列表失败');
     console.error('获取法律文档列表失败:', error);
   } finally {
     loading.value = false;

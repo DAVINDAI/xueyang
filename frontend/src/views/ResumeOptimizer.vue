@@ -146,7 +146,7 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Document, Upload, RefreshRight, Check, Download } from '@element-plus/icons-vue'
-import { resumeApi } from '../api/resumeApi'
+import { resumeApi } from '../api'
 import { marked } from 'marked'
 
 // 表单数据
@@ -207,7 +207,7 @@ const submitForm = async () => {
     ElMessage.success('简历优化成功！')
   } catch (error) {
     console.error('优化失败:', error)
-    ElMessage.error('简历优化失败，请稍后重试')
+    ElMessage.error(error.message || '简历优化失败，请稍后重试')
   } finally {
     loading.value = false
   }
