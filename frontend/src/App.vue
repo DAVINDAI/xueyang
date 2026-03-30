@@ -4,18 +4,18 @@
       <img src="/xy1000.png" alt="Logo" class="logo" />
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
-        <router-link to="/chat" class="nav-link">对话连接</router-link>
-        <router-link to="/coding-playground" class="nav-link">编码操场</router-link>
-        <router-link to="/notes" class="nav-link">笔记管理</router-link>
-        <router-link to="/memo" class="nav-link">备忘录</router-link>
-        <router-link to="/resume" class="nav-link">简历优化</router-link>
-        <router-link to="/resume/list" class="nav-link">优化历史</router-link>
-        <router-link to="/stats" class="nav-link">学习统计</router-link>
-        <router-link to="/details" class="nav-link">学习详情</router-link>
-        <router-link to="/law" class="nav-link">法律助手</router-link>
-        <router-link to="/assistant" class="nav-link">协助助手</router-link>
+        <router-link to="/chat" class="nav-link">对话<br>连接</router-link>
+        <router-link to="/law" class="nav-link">法律<br>助手</router-link>
+        <router-link to="/assistant" class="nav-link">协助<br>助手</router-link>
+        <router-link to="/communication" class="nav-link">沟通<br>助手</router-link>
+        <router-link to="/coding-playground" class="nav-link">编码<br>操场</router-link>
+        <router-link to="/notes" class="nav-link">笔记<br>管理</router-link>
+        <router-link to="/memo" class="nav-link">备忘<br>录</router-link>
+        <router-link to="/resume" class="nav-link">简历<br>优化</router-link>
+        <router-link to="/resume/list" class="nav-link">优化<br>历史</router-link>
+        <router-link to="/details" class="nav-link">学习<br>详情</router-link>
       </nav>
-      <SearchBar v-if="!isHomePage" />
+      <SearchBar />
       <div v-if="isUserLoggedIn" class="user-info">
         <span class="user-phone">{{ username }}</span>
         <el-button type="danger" size="small" @click="handleLogout">注销</el-button>
@@ -134,9 +134,12 @@ body {
 
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex: 1;
   margin: 0 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .search-bar {
@@ -159,19 +162,45 @@ body {
 .nav-link {
   color: white;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  padding: 6px 10px;
+  transition: all 0.3s ease;
   font-size: 14px;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  width: 58px;
+  height: 40px;
+  white-space: normal;
+  margin: 0;
+  line-height: 1.2;
+  position: relative;
 }
+
+.nav-link:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 30%;
+  bottom: 30%;
+  width: 1.5px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 针对不同长度的导航项进行特殊处理 */
+/* 所有导航项统一宽度为58px */
 
 .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  border-radius: 4px;
 }
 
 .router-link-active {
-  background-color: rgba(255, 255, 255, 0.2);
-  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+  border-radius: 4px;
 }
 
 .app-main {
@@ -226,16 +255,20 @@ body {
   }
   
   .nav {
-    gap: 10px;
-    margin: 10px 0;
+    gap: 6px;
+    margin: 5px 0;
     order: 3;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
   }
   
   .nav-link {
-    padding: 6px 12px;
-    font-size: 14px;
+    padding: 4px 8px;
+    font-size: 13px;
+    height: 36px;
+    width: 58px;
+    gap: 2px;
+    line-height: 1.2;
   }
   
   .search-bar {

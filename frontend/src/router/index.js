@@ -40,12 +40,7 @@ const router = createRouter({
       component: () => import('../views/MemoPage.vue'),
       meta: { requiresAuth: false }
     },
-    {
-      path: '/stats',
-      name: 'stats',
-      component: () => import('../views/StatsPage.vue'),
-      meta: { requiresAuth: false }
-    },
+
     {
       path: '/resume',
       name: 'resume',
@@ -81,6 +76,12 @@ const router = createRouter({
       name: 'assistant',
       component: () => import('../views/AssistantPage.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/communication',
+      name: 'communication',
+      component: () => import('../views/CommunicationPage.vue'),
+      meta: { requiresAuth: false }
     }
   ]
 })
