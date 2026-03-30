@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+echo "开始安装Playwright浏览器..."
+
+# 安装Playwright浏览器
+playwright install chromium --with-deps
+
+echo "Playwright浏览器安装完成！"
+
 echo "开始数据库迁移..."
 
 # 执行数据库迁移

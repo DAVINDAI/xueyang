@@ -57,8 +57,7 @@ COPY requirements-big.txt .
 # 安装大体积依赖
 RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
     && pip config set global.trusted-host mirrors.aliyun.com \
-    && pip install --no-cache-dir -r requirements-big.txt \
-    && playwright install chromium --with-deps
+    && pip install --no-cache-dir -r requirements-big.txt
 
 # 阶段 4: 应用镜像 - 运行时
 FROM big-deps
