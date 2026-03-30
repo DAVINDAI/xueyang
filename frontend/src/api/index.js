@@ -39,3 +39,6 @@ export { assistantApi } from './assistantApi'
 
 // 沟通助手API
 export { communicationApi } from './communicationApi'
+
+// 解析API
+export { parseApi } from './parseApi'

@@ -6,8 +6,10 @@
         v-model="searchQuery"
         placeholder="搜索内容..."
         class="search-input"
+        :class="{ 'default-text': isDefaultText }"
         @keyup.enter="handleSearch"
         @focus="isFocused = true"
+        @input="handleInput"
       />
       <button class="search-button" @click="handleSearch">
         搜索
@@ -75,6 +77,14 @@ const searchResults = ref([]);
 const loading = ref(false);
 const error = ref('');
 const isFocused = ref(false);
+
+const isDefaultText = computed(() => {
+  return searchQuery.value === '良法善治';
+});
+
+const handleInput = () => {
+  // 处理输入事件
+};
 
 const semanticResults = computed(() => {
   return searchResults.value.filter(r => r.type === 'semantic');
@@ -172,6 +182,11 @@ onUnmounted(() => {
 
 .search-input:focus {
   border-color: #409eff;
+}
+
+.search-input.default-text {
+  color: #909399;
+  font-style: italic;
 }
 
 .search-button {

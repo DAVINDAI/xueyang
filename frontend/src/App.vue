@@ -5,15 +5,15 @@
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
         <router-link to="/chat" class="nav-link">对话<br>连接</router-link>
-        <router-link to="/law" class="nav-link">法律<br>助手</router-link>
-        <router-link to="/assistant" class="nav-link">协助<br>助手</router-link>
-        <router-link to="/communication" class="nav-link">沟通<br>助手</router-link>
         <router-link to="/coding-playground" class="nav-link">编码<br>操场</router-link>
         <router-link to="/notes" class="nav-link">笔记<br>管理</router-link>
         <router-link to="/memo" class="nav-link">备忘<br>录</router-link>
         <router-link to="/resume" class="nav-link">简历<br>优化</router-link>
         <router-link to="/resume/list" class="nav-link">优化<br>历史</router-link>
         <router-link to="/details" class="nav-link">学习<br>详情</router-link>
+        <router-link to="/law" class="nav-link">法律<br>助手</router-link>
+        <router-link to="/assistant" class="nav-link">协助<br>助手</router-link>
+        <router-link to="/communication" class="nav-link">沟通<br>助手</router-link>
       </nav>
       <SearchBar />
       <div v-if="isUserLoggedIn" class="user-info">
@@ -21,7 +21,7 @@
         <el-button type="danger" size="small" @click="handleLogout">注销</el-button>
       </div>
       <div v-else class="login-btn">
-        <router-link to="/login" class="nav-link">管理员登录</router-link>
+        <router-link to="/login" class="login-link">管理员登录</router-link>
       </div>
     </header>
     <main class="app-main">
@@ -186,6 +186,27 @@ body {
   bottom: 30%;
   width: 1.5px;
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.login-link {
+  color: white;
+  text-decoration: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 40px;
+  line-height: 1.2;
+  position: relative;
+  background: none;
+}
+
+.login-link.router-link-active {
+  background: none;
+  font-weight: normal;
+  border-radius: 0;
 }
 
 /* 针对不同长度的导航项进行特殊处理 */

@@ -14,14 +14,14 @@
             <span class="filename">{{ scope.row.filename }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="file_size" label="文件大小" min-width="100">
+        <el-table-column prop="fileSize" label="文件大小" min-width="100">
           <template #default="scope">
-            <span>{{ formatFileSize(scope.row.file_size) }}</span>
+            <span>{{ formatFileSize(scope.row.fileSize) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" min-width="150">
+        <el-table-column prop="createdAt" label="创建时间" min-width="150">
           <template #default="scope">
-            <span>{{ formatDate(scope.row.created_at) }}</span>
+            <span>{{ formatDate(scope.row.createdAt) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" min-width="100">
@@ -48,6 +48,7 @@ const loading = ref(true);
 
 // 格式化文件大小
 const formatFileSize = (bytes) => {
+  if (bytes == null || isNaN(bytes) || bytes < 0) return '未知大小';
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -57,7 +58,28 @@ const formatFileSize = (bytes) => {
 
 // 格式化日期
 const formatDate = (timestamp) => {
-  const date = new Date(timestamp * 1000);
+  if (timestamp == null || isNaN(timestamp) || timestamp <= 0) return '未知日期';
+  
+  let date;
+  if (typeof timestamp === 'string') {
+    // 如果是字符串，尝试直接解析
+    date = new Date(timestamp);
+  } else if (typeof timestamp === 'number') {
+    // 如果是数字，假设是秒或毫秒时间戳
+    if (timestamp < 1000000000000) {
+      // 小于13位，认为是秒时间戳
+      date = new Date(timestamp * 1000);
+    } else {
+      // 大于等于13位，认为是毫秒时间戳
+      date = new Date(timestamp);
+    }
+  } else {
+    return '未知日期';
+  }
+  
+  // 检查日期是否有效
+  if (isNaN(date.getTime())) return '无效日期';
+  
   return date.toLocaleString();
 };
 

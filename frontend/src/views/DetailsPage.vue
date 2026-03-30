@@ -54,26 +54,24 @@
           </div>
         </el-card>
         
-        <el-list v-else class="sessions">
-          <el-list-item
+        <div v-else class="sessions">
+          <div
             v-for="session in filteredSessions"
             :key="session.id"
             class="session-item"
             :class="{ active: selectedSession?.id === session.id }"
             @click="selectSession(session)"
           >
-            <template #default>
-              <div class="session-info">
-                <h3>{{ session.sessionName }}</h3>
-                <div class="session-meta">
-                  <span class="model-tag">{{ session.modelName }}</span>
-                  <span class="message-count">{{ session.messageCount }} 条消息</span>
-                  <span class="time">{{ formatTime(session.updatedAt) }}</span>
-                </div>
+            <div class="session-info">
+              <h3>{{ session.sessionName }}</h3>
+              <div class="session-meta">
+                <span class="model-tag">{{ session.modelName }}</span>
+                <span class="message-count">{{ session.messageCount }} 条消息</span>
+                <span class="time">{{ formatTime(session.updatedAt) }}</span>
               </div>
-            </template>
-          </el-list-item>
-        </el-list>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- 会话详情 -->

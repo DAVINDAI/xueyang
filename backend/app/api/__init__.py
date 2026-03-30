@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api import chat, coding_playground, details, search, stats, resume, notes, auth, evolution, assistant, communication
+from app.api import chat, coding_playground, details, search, stats, resume, notes, auth, evolution, assistant, communication, parse
 
 api_router = APIRouter()
 
@@ -14,3 +14,4 @@ api_router.include_router(notes.router)
 api_router.include_router(evolution.router)
 api_router.include_router(assistant.router)
 api_router.include_router(communication.router, prefix="/communication", tags=["communication"])
+api_router.include_router(parse.router, prefix="/parse", tags=["parse"])

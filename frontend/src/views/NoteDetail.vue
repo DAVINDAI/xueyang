@@ -1,7 +1,7 @@
 <template>
   <div class="note-detail-page">
     <div class="page-header">
-      <el-button type="text" @click="goBack" class="back-btn">
+      <el-button link @click="goBack" class="back-btn">
         <el-icon><ArrowLeft /></el-icon> 返回
       </el-button>
       <div class="header-actions">

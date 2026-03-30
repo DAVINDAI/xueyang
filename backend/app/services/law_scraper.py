@@ -60,15 +60,22 @@ class LawScraperService:
                     file_path = os.path.join(download_dir, filename)
                     file_size = os.path.getsize(file_path)
                     
-                    # 创建文档信息字典
-                    doc_info = {
-                        "filename": filename,
-                        "file_path": file_path,
-                        "file_size": file_size,
-                        "created_at": os.path.getctime(file_path)
-                    }
+                    # 获取文件的修改时间（比创建时间更准确）
+                    created_at = os.path.getmtime(file_path)
                     
-                    law_docs.append(doc_info)
+                    # 确保文件大小和创建时间都是有效数值
+                    if isinstance(file_size, int) and isinstance(created_at, float):
+                        # 创建文档信息字典
+                        doc_info = {
+                            "filename": filename,
+                            "file_path": file_path,
+                            "file_size": file_size,
+                            "created_at": created_at
+                        }
+                        
+                        law_docs.append(doc_info)
+                    else:
+                        logger.warning(f"文件 {filename} 的属性无效，跳过")
             
             logger.info(f"找到 {len(law_docs)} 个已下载的法律文档")
             return law_docs

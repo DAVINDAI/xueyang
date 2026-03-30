@@ -12,11 +12,13 @@
             type="text"
             placeholder="搜索内容..."
             class="search-input"
+            :class="{ 'default-text': isDefaultText }"
             @keyup.enter="handleSearch"
+            @input="handleInput"
           />
           <button class="search-btn" @click="handleSearch">
             <el-icon><Search /></el-icon>
-            搜索
+            对话
           </button>
         </div>
       </div>
@@ -100,7 +102,7 @@
           <div class="feature-icon">📊</div>
           <h3>学习数据分析</h3>
           <p>追踪你的学习进度和习惯，提供详细的学习数据统计和分析，帮助你优化学习策略。</p>
-          <router-link to="/stats" class="btn">查看分析</router-link>
+          <router-link to="/details" class="btn">查看分析</router-link>
         </div>
       </div>
     </div>
@@ -187,23 +189,132 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { evolutionApi } from '../api/index.js'
-import { Refresh } from '@element-plus/icons-vue'
+import { chatApi } from '../api/index.js'
+import { parseApi } from '../api/index.js'
+import { Refresh } from '@element-plus/icons-vue' 
 import { marked } from 'marked'
 
 const router = useRouter()
 
-const searchQuery = ref('良法善治')
+const searchQuery = ref('今天我想学习什么？')
+const isDefaultText = ref(true)
 
-const handleSearch = () => {
+const handleInput = () => {
+  // 当用户输入内容时，判断是否是默认文字
+  isDefaultText.value = searchQuery.value === '今天我想学习什么？'
+}
+
+const handleSearch = async () => {
   if (!searchQuery.value.trim()) {
     ElMessage.warning('请输入搜索内容')
     return
   }
   
-  router.push({
-    path: '/chat',
-    query: { q: searchQuery.value }
-  })
+  try {
+    // 优先使用前端路由，根据用户输入匹配路由
+    const matchedRoute = matchRouteByKeywords(searchQuery.value)
+    if (matchedRoute) {
+      console.log('前端匹配到路由:', matchedRoute)
+      if (matchedRoute === '/chat') {
+        // 如果匹配结果是聊天页面，直接跳转到聊天页面，简化流程
+        router.push({
+          path: '/chat',
+          query: { query: searchQuery.value }
+        })
+      } else {
+        // 其他路由直接跳转
+        router.push({
+          path: matchedRoute,
+          query: { query: searchQuery.value }
+        })
+      }
+      return
+    }
+
+    console.log('前端未匹配到路由，请求后端解析')
+    // 前端匹配不到时，使用解析API判断用户意图
+    const parseResponse = await parseApi.parseInput(searchQuery.value)
+    
+    if (parseResponse.route === '/chat') {
+      // 如果解析结果是聊天页面，直接跳转到聊天页面
+      router.push({
+        path: '/chat',
+        query: { query: searchQuery.value }
+      })
+    } else {
+      // 其他路由直接跳转
+      router.push({
+        path: parseResponse.route,
+        query: { query: searchQuery.value }
+      })
+    }
+  } catch (error) {
+    console.error('解析输入失败:', error)
+    // 如果解析API失败，直接跳转到聊天页面
+    router.push({
+      path: '/chat',
+      query: { query: searchQuery.value }
+    })
+  }
+}
+
+// 前端路由匹配函数
+const matchRouteByKeywords = (query) => {
+  const routeRules = [
+    {
+      path: '/chat',
+      keywords: ['聊天', '对话', '问答', '咨询', '提问', '问题', '学习', '聊天助手']
+    },
+    {
+      path: '/coding-playground',
+      keywords: ['编码', '编程', '代码', '开发', '练习', '操场', '编程练习']
+    },
+    {
+      path: '/notes',
+      keywords: ['笔记', '知识', '管理', '查看笔记', '笔记管理', '创建笔记']
+    },
+    {
+      path: '/memo',
+      keywords: ['备忘', '备忘录', '待办', '记录', '重要信息', '查看备忘录']
+    },
+    {
+      path: '/resume',
+      keywords: ['简历', '优化', '简历优化', '优化简历', '求职', '面试']
+    },
+    {
+      path: '/resume/list',
+      keywords: ['历史', '优化历史', '简历历史', '历史记录', '查看历史']
+    },
+    {
+      path: '/details',
+      keywords: ['数据分析', '统计', '学习分析', '学习数据', '进度', '学习详情']
+    },
+    {
+      path: '/law',
+      keywords: ['法律', '法规', '助手', '查询', '法律助手', '法律咨询']
+    },
+    {
+      path: '/assistant',
+      keywords: ['协助', '助手', '任务', '计划', '执行', '协助助手']
+    },
+    {
+      path: '/communication',
+      keywords: ['沟通', '交流', '协作', '消息', '沟通助手']
+    }
+  ]
+  
+  // 不区分大小写匹配
+  const lowerQuery = query.toLowerCase()
+  for (const rule of routeRules) {
+    for (const keyword of rule.keywords) {
+      if (lowerQuery.includes(keyword.toLowerCase())) {
+        return rule.path
+      }
+    }
+  }
+  
+  // 默认返回null表示未匹配到
+  return null
 }
 
 const isLoading = ref(false)
@@ -298,6 +409,11 @@ const renderMarkdown = (content) => {
   padding: 12px 20px;
   background-color: transparent;
   color: #333;
+  transition: color 0.3s ease;
+}
+
+.search-input.default-text {
+  color: #999;
 }
 
 .search-input::placeholder {

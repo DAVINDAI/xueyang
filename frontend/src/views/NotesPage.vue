@@ -31,10 +31,10 @@
             </div>
             
             <div class="note-footer">
-              <el-button type="text" size="small" @click.stop="viewNote(note.id)">
+              <el-button link size="small" @click.stop="viewNote(note.id)">
                 <el-icon><Document /></el-icon> 查看
               </el-button>
-              <el-button type="text" size="small" @click.stop="deleteNote(note.id)">
+              <el-button link size="small" @click.stop="deleteNote(note.id)">
                 <el-icon><Delete /></el-icon> 删除
               </el-button>
               <el-button type="primary" size="small" @click.stop="editNote(note)">

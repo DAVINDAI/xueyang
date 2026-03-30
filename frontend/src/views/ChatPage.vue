@@ -29,25 +29,23 @@
           </div>
         </el-card>
         
-        <el-list v-else class="sessions-list">
-          <el-list-item
+        <div v-else class="sessions-list">
+          <div
             v-for="session in filteredSessions"
             :key="session.id"
             class="session-item"
             :class="{ active: activeSession?.id === session.id }"
             @click="selectSession(session)"
           >
-            <template #default>
-              <div class="session-info">
-                <h3>{{ session.sessionName }}</h3>
-                <div class="session-meta">
-                  <span class="model-tag">{{ session.modelName }}</span>
-                  <span class="time">{{ formatTime(session.updatedAt) }}</span>
-                </div>
+            <div class="session-info">
+              <h3>{{ session.sessionName }}</h3>
+              <div class="session-meta">
+                <span class="model-tag">{{ session.modelName }}</span>
+                <span class="time">{{ formatTime(session.updatedAt) }}</span>
               </div>
-            </template>
-          </el-list-item>
-        </el-list>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- 右侧聊天界面 -->
@@ -56,7 +54,7 @@
         <div class="chat-header">
           <div class="chat-title">
             <h2>{{ activeSession.sessionName }}</h2>
-            <el-button type="text" size="small" @click="editSessionName">
+            <el-button link size="small" @click="editSessionName">
               <el-icon><Edit /></el-icon>
             </el-button>
           </div>
@@ -255,6 +253,40 @@ marked.setOptions({
 // 路由
 const route = useRoute()
 
+// 页面加载时检查路由参数
+onMounted(async () => {
+  // 检查是否有查询参数需要处理
+  const queryParam = route.query.query
+  if (queryParam) {
+    console.log('收到查询参数:', queryParam)
+    
+    // 等待会话列表加载完成
+    await loadSessions()
+    
+    // 如果没有活跃会话，自动创建一个新会话
+    if (!activeSession.value && sessions.value.length === 0) {
+      console.log('没有活跃会话，自动创建新会话')
+      const sessionResponse = await chatApi.createSession('新会话', 'qwen-plus')
+      await loadSessions()
+      const newSession = sessions.value.find(s => s.id === sessionResponse.sessionId)
+      if (newSession) {
+        selectSession(newSession)
+      }
+    }
+    
+    // 填充查询参数到输入框
+    inputMessage.value = queryParam
+    
+    // 确保DOM完全更新后再发送消息 - 增加延迟确保DOM完全准备好
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // 自动发送消息
+    if (activeSession.value) {
+      sendMessage()
+    }
+  }
+})
+
 // 响应式数据
 const sessions = ref([])
 const activeSession = ref(null)
@@ -279,23 +311,40 @@ const userScrolled = ref(false)
 
 // Markdown 渲染函数
 const renderMarkdown = (content) => {
-  if (!content) return ''
-  // 使用marked.parse将Markdown转换为HTML
-  let html = marked.parse(content)
-  // 检查返回值类型（marked v17+的新API）
-  if (typeof html === 'object' && html.html) {
-    html = html.html
+  // 确保内容是字符串类型
+  if (!content || typeof content !== 'string') {
+    return ''
   }
-  // 手动处理Mermaid代码块
-  html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, '<div class="mermaid">$1</div>')
-  return html
+  
+  // 处理空字符串或纯空格内容
+  if (content.trim() === '') {
+    return ''
+  }
+  
+  try {
+    // 使用marked.parse将Markdown转换为HTML
+    let html = marked.parse(content)
+    // 检查返回值类型（marked v17+的新API）
+    if (typeof html === 'object' && html.html) {
+      html = html.html
+    }
+    // 手动处理Mermaid代码块
+    html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, '<div class="mermaid">$1</div>')
+    return html
+  } catch (error) {
+    console.error('Markdown 渲染失败:', error, '内容:', content)
+    return content
+  }
 }
 
 // 高亮所有代码块和渲染Mermaid图表
 const highlightAllCodeBlocks = () => {
   nextTick(() => {
-    // 高亮代码块
+    // 高亮代码块（避免重复高亮警告）
     document.querySelectorAll('.markdown-body pre code').forEach((block) => {
+      // 完全移除 highlight.js 的高亮标记
+      delete block.dataset.highlighted
+      // 重新高亮
       hljs.highlightElement(block)
     })
     // 渲染Mermaid图表
@@ -566,9 +615,15 @@ const sendMessage = async () => {
       (chunk) => {
         // 流式更新AI消息内容
         fullResponse += chunk
+        console.log('收到流式数据:', fullResponse) // 调试日志
         const aiMessageIndex = messages.value.findIndex(m => m.id === tempAiMessage.id)
         if (aiMessageIndex !== -1) {
-          messages.value[aiMessageIndex].content = fullResponse
+          // 确保响应式更新
+          messages.value = [...messages.value.map(msg => 
+            msg.id === tempAiMessage.id 
+              ? { ...msg, content: fullResponse } 
+              : msg
+          )]
           autoScrollToBottom()
         }
       },
@@ -821,7 +876,7 @@ watch(
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 700px;
+  height: calc(100vh - 200px);
   position: relative;
 }
 
@@ -869,6 +924,7 @@ watch(
   overflow-y: auto;
   background-color: #fafafa;
   position: relative;
+  max-height: calc(100% - 200px);
 }
 
 .floating-buttons {
