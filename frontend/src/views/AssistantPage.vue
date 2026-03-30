@@ -44,10 +44,17 @@
             :key="user.username"
             class="user-item"
           >
-            <div class="user-info">
-              <span class="username">{{ user.username }}</span>
-              <span class="user-role">{{ user.role }}</span>
-            </div>
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                :value="user.username" 
+                v-model="selectedUsers"
+              >
+              <div class="user-info">
+                <span class="username">{{ user.username }}</span>
+                <span class="user-role">{{ user.role }}</span>
+              </div>
+            </label>
           </div>
         </div>
       </div>
@@ -143,6 +150,7 @@ export default {
       goals: [],
       tasks: [],
       users: [],
+      selectedUsers: [],
       taskFilter: 'all',
       userRole: ''
     }
@@ -239,26 +247,61 @@ export default {
 }
 
 .top-section {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #e6f7ff 0%, #e8f5e8 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 
+              0 1px 2px rgba(0, 0, 0, 0.04),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 20px;
+  color: #2c5f4e;
 }
 
 .editor-container {
-  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-container .form-group:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-container .markdown-editor {
+  flex: 1;
+  min-height: 120px;
+  resize: vertical;
 }
 
 .users-container {
   max-width: 400px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px 15px 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.users-container .user-list {
+  flex: 1;
+  min-height: 0;
 }
 
 .users-container h2 {
   margin-top: 0;
+  color: #2c5f4e;
+  margin-bottom: 15px;
+  font-size: 22px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .user-list {
@@ -266,6 +309,27 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
   margin-top: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-list::-webkit-scrollbar-track {
+  background: rgba(44, 95, 78, 0.1);
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background: rgba(44, 95, 78, 0.3);
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(44, 95, 78, 0.5);
 }
 
 .user-item {
@@ -273,12 +337,31 @@ export default {
   padding: 10px;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.user-item:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.2);
 }
 
 .user-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex: 1;
 }
 
 .user-role {
@@ -332,11 +415,15 @@ export default {
 }
 
 .bottom-section {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #e6f7ff 0%, #e8f5e8 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 
+              0 1px 2px rgba(0, 0, 0, 0.04),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #2c5f4e;
 }
 
 .task-filters {
@@ -414,10 +501,14 @@ export default {
 }
 
 .goals-section {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #e6f7ff 0%, #e8f5e8 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 
+              0 1px 2px rgba(0, 0, 0, 0.04),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #2c5f4e;
 }
 
 .goals-container {
@@ -467,5 +558,26 @@ export default {
 
 .goal-actions {
   margin-top: 10px;
+}
+
+/* 统一标题样式 */
+.top-section h2,
+.bottom-section h2,
+.goals-section h2 {
+  color: #2c5f4e;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.users-container h2 {
+  margin-top: 0;
+  color: #2c5f4e;
+  margin-bottom: 15px;
+  font-size: 22px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 </style>

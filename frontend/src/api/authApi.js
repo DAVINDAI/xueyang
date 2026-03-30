@@ -38,5 +38,14 @@ export const authApi = {
    */
   isLoggedIn: () => {
     return !!localStorage.getItem('token')
+  },
+
+  /**
+   * 获取当前用户信息
+   * @returns {Promise}
+   */
+  getCurrentUser: async () => {
+    const response = await api.get('/auth/me')
+    return response
   }
 }

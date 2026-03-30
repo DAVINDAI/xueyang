@@ -152,7 +152,7 @@ onUnmounted(() => {
 .search-bar {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 250px;
 }
 
 .search-input-container {
@@ -162,10 +162,10 @@ onUnmounted(() => {
 
 .search-input {
   flex: 1;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid #dcdfe6;
   border-radius: 4px 0 0 4px;
-  font-size: 14px;
+  font-size: 12px;
   outline: none;
   transition: border-color 0.3s;
 }
@@ -175,13 +175,15 @@ onUnmounted(() => {
 }
 
 .search-button {
-  padding: 0 16px;
+  padding: 0 12px;
   background-color: #409eff;
   color: white;
   border: none;
   border-radius: 0 4px 4px 0;
   cursor: pointer;
   transition: background-color 0.3s;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .search-button:hover {

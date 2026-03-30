@@ -36,3 +36,6 @@ export { lawApi } from './lawApi'
 
 // 协助助手API
 export { assistantApi } from './assistantApi'
+
+// 沟通助手API
+export { communicationApi } from './communicationApi'

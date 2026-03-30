@@ -143,6 +143,8 @@ def init_database(visitor_id=None):
     )
     ''')
     
+
+    
     # 创建索引 - 提升查询性能
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_session_id ON chat_message(session_id)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_message_created_at ON chat_message(created_at DESC)')
@@ -151,6 +153,7 @@ def init_database(visitor_id=None):
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_resume_optimization_created_at ON resume_optimization(created_at DESC)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_notes_created_at ON notes(created_at DESC)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes(updated_at DESC)')
+
     
     # 提交事务
     conn.commit()
@@ -862,3 +865,208 @@ def get_difficulty_stats(visitor_id: str) -> dict:
         stats[row[0]] = row[1]
     
     return stats
+
+# 沟通消息操作
+def create_communication_message(visitor_id: str, sender_id: str, receiver_id: str, original_content: str, polished_content: str, sender_role: str, receiver_role: str) -> int:
+    """创建沟通消息"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO communication_message (sender_id, receiver_id, original_content, polished_content, sender_role, receiver_role)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ''', (sender_id, receiver_id, original_content, polished_content, sender_role, receiver_role))
+    message_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return message_id
+
+def get_communication_messages(visitor_id: str, user_id: str = None, role: str = None, limit: int = 20, offset: int = 0) -> List[Dict[str, Any]]:
+    """获取沟通消息列表"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    
+    if user_id and role:
+        if role == 'sender':
+            cursor.execute('''
+            SELECT id, sender_id, receiver_id, original_content, polished_content, sender_role, receiver_role, status, created_at, updated_at
+            FROM communication_message
+            WHERE sender_id = ?
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            ''', (user_id, limit, offset))
+        else:
+            cursor.execute('''
+            SELECT id, sender_id, receiver_id, original_content, polished_content, sender_role, receiver_role, status, created_at, updated_at
+            FROM communication_message
+            WHERE receiver_id = ?
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            ''', (user_id, limit, offset))
+    else:
+        cursor.execute('''
+        SELECT id, sender_id, receiver_id, original_content, polished_content, sender_role, receiver_role, status, created_at, updated_at
+        FROM communication_message
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+        ''', (limit, offset))
+    
+    messages = [dict(row) for row in cursor.fetchall()]
+    for message in messages:
+        message['created_at'] = convert_db_time_to_iso(message['created_at'])
+        message['updated_at'] = convert_db_time_to_iso(message['updated_at'])
+    
+    conn.close()
+    return messages
+
+def get_communication_message(visitor_id: str, message_id: int) -> Dict[str, Any]:
+    """获取单个沟通消息"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT id, sender_id, receiver_id, original_content, polished_content, sender_role, receiver_role, status, created_at, updated_at
+    FROM communication_message
+    WHERE id = ?
+    ''', (message_id,))
+    row = cursor.fetchone()
+    message = dict(row) if row else None
+    if message:
+        message['created_at'] = convert_db_time_to_iso(message['created_at'])
+        message['updated_at'] = convert_db_time_to_iso(message['updated_at'])
+    conn.close()
+    return message
+
+def update_communication_message_status(visitor_id: str, message_id: int, status: str) -> bool:
+    """更新沟通消息状态"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE communication_message
+    SET status = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+    ''', (status, message_id))
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+def delete_communication_message(visitor_id: str, message_id: int) -> bool:
+    """删除沟通消息"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    # 先删除相关的回复建议
+    cursor.execute('DELETE FROM response_suggestion WHERE message_id = ?', (message_id,))
+    # 删除消息
+    cursor.execute('DELETE FROM communication_message WHERE id = ?', (message_id,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+# 回复建议操作
+def create_response_suggestion(visitor_id: str, message_id: int, suggestion_type: str, content: str, confidence: float = 0.0) -> int:
+    """创建回复建议"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO response_suggestion (message_id, suggestion_type, content, confidence)
+    VALUES (?, ?, ?, ?)
+    ''', (message_id, suggestion_type, content, confidence))
+    suggestion_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return suggestion_id
+
+def get_response_suggestions_by_message(visitor_id: str, message_id: int) -> List[Dict[str, Any]]:
+    """获取指定消息的回复建议"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT id, message_id, suggestion_type, content, confidence, created_at
+    FROM response_suggestion
+    WHERE message_id = ?
+    ORDER BY suggestion_type, confidence DESC
+    ''', (message_id,))
+    suggestions = [dict(row) for row in cursor.fetchall()]
+    for suggestion in suggestions:
+        suggestion['created_at'] = convert_db_time_to_iso(suggestion['created_at'])
+    conn.close()
+    return suggestions
+
+def delete_response_suggestions_by_message(visitor_id: str, message_id: int) -> bool:
+    """删除指定消息的回复建议"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM response_suggestion WHERE message_id = ?', (message_id,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+# 用户角色操作
+def create_user_role(visitor_id: str, role_name: str, description: str = None) -> int:
+    """创建用户角色"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT INTO user_role (role_name, description)
+    VALUES (?, ?)
+    ''', (role_name, description))
+    role_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return role_id
+
+def get_user_roles(visitor_id: str) -> List[Dict[str, Any]]:
+    """获取所有用户角色"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT id, role_name, description, created_at
+    FROM user_role
+    ORDER BY role_name
+    ''')
+    roles = [dict(row) for row in cursor.fetchall()]
+    for role in roles:
+        role['created_at'] = convert_db_time_to_iso(role['created_at'])
+    conn.close()
+    return roles
+
+def get_user_role(visitor_id: str, role_name: str) -> Dict[str, Any]:
+    """获取单个用户角色"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT id, role_name, description, created_at
+    FROM user_role
+    WHERE role_name = ?
+    ''', (role_name,))
+    row = cursor.fetchone()
+    role = dict(row) if row else None
+    if role:
+        role['created_at'] = convert_db_time_to_iso(role['created_at'])
+    conn.close()
+    return role
+
+def update_user_role(visitor_id: str, role_name: str, description: str) -> bool:
+    """更新用户角色"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE user_role
+    SET description = ?
+    WHERE role_name = ?
+    ''', (description, role_name))
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+def delete_user_role(visitor_id: str, role_name: str) -> bool:
+    """删除用户角色"""
+    conn = get_db_connection(visitor_id)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM user_role WHERE role_name = ?', (role_name,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted

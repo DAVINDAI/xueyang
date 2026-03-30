@@ -41,7 +41,7 @@
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Loading, Document, Download } from '@element-plus/icons-vue';
-import { getAvailableLawDocs, downloadLawDoc } from '../api/lawApi';
+import { lawApi } from '../api/lawApi';
 
 const lawDocs = ref([]);
 const loading = ref(true);
@@ -64,7 +64,7 @@ const formatDate = (timestamp) => {
 // 处理下载
 const handleDownload = (filename) => {
   try {
-    downloadLawDoc(filename);
+    lawApi.downloadLawDoc(filename);
     ElMessage.success('开始下载法律文档');
   } catch (error) {
     ElMessage.error(error.message || '下载失败，请重试');
@@ -75,7 +75,7 @@ const handleDownload = (filename) => {
 const loadLawDocs = async () => {
   loading.value = true;
   try {
-    const docs = await getAvailableLawDocs();
+    const docs = await lawApi.getAvailableLawDocs();
     lawDocs.value = docs;
   } catch (error) {
     ElMessage.error(error.message || '获取法律文档列表失败');
