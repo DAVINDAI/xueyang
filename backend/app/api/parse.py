@@ -90,8 +90,8 @@ async def parse_input(
     request: Request,
     data: Dict[str, Any] = Body(..., description="用户输入数据")
 ):
-    # 支持 inputText 和 input_text 两种字段名
-    raw_input_text = data.get("inputText", data.get("input_text", ""))
+    # 统一使用 input_text 字段名，符合后端API规范
+    raw_input_text = data.get("input_text", "")
     logger.info(f"收到原始输入文本类型: {type(raw_input_text)}")
     logger.info(f"收到原始输入文本: {raw_input_text}")
     
@@ -158,4 +158,10 @@ async def parse_input(
     except Exception as e:
         logger.error(f"解析用户输入失败: {str(e)}")
         logger.error(logging.traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"解析输入失败: {str(e)}")
+        # LLM服务不可用时，返回默认路由/chat
+        logger.warning(f"LLM服务不可用，返回默认聊天页面: {str(e)}")
+        return {
+            "route": "/chat",
+            "query": input_text,
+            "confidence": "low"  # 标记为低置信度，因为是默认返回
+        }
