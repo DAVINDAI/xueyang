@@ -57,6 +57,9 @@ Thumbs.db
 frontend/dist/
 frontend/.vite/
 
+# LlamaIndex storage
+backend/storage/
+
 # Temporary files
 *.pid
 .playwright_deepseek_data/
