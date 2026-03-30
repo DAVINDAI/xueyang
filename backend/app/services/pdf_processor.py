@@ -57,6 +57,14 @@ class PDFProcessor:
                 llama_reader = pymupdf4llm.LlamaMarkdownReader()
                 documents = llama_reader.load_data(file_path)
                 print(f"LlamaMarkdownReader加载成功，页码数量: {len(documents)}")
+                # 为每个文档添加文件名元数据
+                import os
+                file_name = os.path.basename(file_path)
+                for doc in documents:
+                    if "file_name" not in doc.metadata:
+                        doc.metadata["file_name"] = file_name
+                    if "file_path" not in doc.metadata:
+                        doc.metadata["file_path"] = file_path
                 return documents
             except Exception as e:
                 print(f"LlamaMarkdownReader加载失败，尝试使用to_markdown方法: {e}")
@@ -64,9 +72,18 @@ class PDFProcessor:
                 with open(file_path, 'rb') as f:
                     pdf_content = f.read()
                 markdown_content = to_markdown(pdf_content)
-                # 创建简单的文档对象
+                # 创建简单的文档对象，添加元数据
                 from llama_index.core import Document
-                documents = [Document(text=markdown_content)]
+                import os
+                file_name = os.path.basename(file_path)
+                documents = [Document(
+                    text=markdown_content,
+                    metadata={
+                        "file_name": file_name,
+                        "file_path": file_path,
+                        "page": 1
+                    }
+                )]
                 return documents
         except Exception as e:
             print(f"文档加载失败: {e}")
@@ -107,7 +124,7 @@ class PDFProcessor:
             return None
     
     @staticmethod
-    def process_pdf_with_llamaindex(file_path: str, collection_name: str = "pdf_documents") -> Optional[str]:
+    def process_pdf_with_llamaindex(file_path: str, collection_name: str = "law_documents") -> Optional[str]:
         """
         处理PDF文件，转换为Markdown并与LlamaIndex集成，使用Chroma数据库
         
@@ -138,6 +155,12 @@ class PDFProcessor:
             
             # 获取或创建集合
             collection = chroma_client.get_or_create_collection(name=collection_name)
+            
+            # 检查文档是否已经存在（通过文件路径）
+            file_name = os.path.basename(file_path)
+            existing_docs = collection.get(where={"file_path": file_path})
+            if existing_docs and existing_docs['ids']:
+                return f"文档 {file_name} 已经存在于数据库中，跳过处理"
             
             # 创建向量存储
             vector_store = ChromaVectorStore(chroma_collection=collection)
