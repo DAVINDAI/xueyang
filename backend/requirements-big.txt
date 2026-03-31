@@ -1,4 +1,4 @@
--f https://download.pytorch.org/whl/torch_stable.html
+-f https://mirrors.aliyun.com/pytorch-wheels/cpu/
 torch==2.0.0+cpu
 transformers>=4.30.0
 modelscope>=1.0.0
