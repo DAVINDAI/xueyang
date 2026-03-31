@@ -175,7 +175,6 @@ class PDFProcessor:
             from llama_index.core import Settings, StorageContext
             from llama_index.core.node_parser import SentenceSplitter
             # 创建嵌入模型（优先使用 DashScope 远程嵌入模型）
-            import os
             api_key = os.getenv("DASHSCOPE_API_KEY")
             
             if not api_key:
