@@ -63,7 +63,7 @@ class LawRAGService:
                 
             from langchain_community.embeddings import DashScopeEmbeddings
             from llama_index.embeddings.langchain import LangchainEmbedding
-            langchain_embedding = DashScopeEmbeddings(model="text-embedding-v1", dashscope_api_key=api_key)
+            langchain_embedding = DashScopeEmbeddings(model="qwen3-vl-embedding", dashscope_api_key=api_key)
             self.embed_model = LangchainEmbedding(langchain_embedding)
             
             # 设置全局配置
