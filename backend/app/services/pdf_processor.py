@@ -184,7 +184,7 @@ class PDFProcessor:
                 
             from langchain_community.embeddings import DashScopeEmbeddings
             from llama_index.embeddings.langchain import LangchainEmbedding
-            langchain_embedding = DashScopeEmbeddings(model="qwen3-vl-embedding", dashscope_api_key=api_key)
+            langchain_embedding = DashScopeEmbeddings(model="text-embedding-v3", dashscope_api_key=api_key)
             embed_model = LangchainEmbedding(langchain_embedding)
             
             # 创建节点解析器
