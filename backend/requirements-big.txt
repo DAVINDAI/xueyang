@@ -1,5 +1,4 @@
--f https://mirrors.aliyun.com/pytorch-wheels/cpu/
-torch==2.0.0+cpu
+torch>=2.0.0
 transformers>=4.30.0
 modelscope>=1.0.0
 addict>=2.4.0
