@@ -6,7 +6,6 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.chroma import ChromaVectorStore
 import chromadb
 from app.services.db import get_chat_sessions, get_chat_messages
-from app.services.modelscope_embedding import ModelScopeEmbedding
 
 # 数据存储基础路径
 data_base_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data')
