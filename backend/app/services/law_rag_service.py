@@ -4,6 +4,10 @@
 """
 import os
 import logging
+from dotenv import load_dotenv
+
+# 确保在初始化之前加载环境变量
+load_dotenv()
 from typing import List, Dict, Any, Optional
 from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -53,7 +57,6 @@ class LawRAGService:
             vector_store = ChromaVectorStore(chroma_collection=collection)
             
             # 创建嵌入模型（使用 DashScope 远程嵌入模型）
-            import os
             api_key = os.getenv("DASHSCOPE_API_KEY")
             
             if not api_key:

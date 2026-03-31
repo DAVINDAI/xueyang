@@ -1,6 +1,10 @@
 import os
 import logging
 from typing import List, Dict, Any, Optional
+from dotenv import load_dotenv
+
+# 确保在初始化之前加载环境变量
+load_dotenv()
 from llama_index.core import VectorStoreIndex, Document, StorageContext, Settings
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -37,8 +41,8 @@ class LlamaIndexService:
             api_key = os.getenv("DASHSCOPE_API_KEY")
             if not api_key:
                 logger.warning("DASHSCOPE_API_KEY not found, please set it in environment variables")
-                # 可以考虑添加备用方案，或者抛出异常
-                raise Exception("DASHSCOPE_API_KEY is required for embedding model")
+                # 这里我们继续初始化，但实际使用时可能会失败
+                # 可以考虑添加备用方案
             else:
                 # 使用DashScope远程模型
                 from langchain_community.embeddings import DashScopeEmbeddings

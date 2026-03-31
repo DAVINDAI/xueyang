@@ -1,6 +1,10 @@
 from pymupdf4llm import to_markdown, use_layout
 from typing import Optional
 import io
+from dotenv import load_dotenv
+
+# 确保在初始化之前加载环境变量
+load_dotenv()
 
 # 禁用布局分析以避免表格检测时的 ONNXRuntimeError
 use_layout(False)
@@ -58,7 +62,6 @@ class PDFProcessor:
                 documents = llama_reader.load_data(file_path)
                 print(f"LlamaMarkdownReader加载成功，页码数量: {len(documents)}")
                 # 为每个文档添加文件名元数据
-                import os
                 file_name = os.path.basename(file_path)
                 for doc in documents:
                     if "file_name" not in doc.metadata:
@@ -74,7 +77,6 @@ class PDFProcessor:
                 markdown_content = to_markdown(pdf_content)
                 # 创建简单的文档对象，添加元数据
                 from llama_index.core import Document
-                import os
                 file_name = os.path.basename(file_path)
                 documents = [Document(
                     text=markdown_content,
@@ -142,7 +144,6 @@ class PDFProcessor:
             import pymupdf4llm
             
             # 构建持久化存储路径
-            import os
             data_dir = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
                 "data",
