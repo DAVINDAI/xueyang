@@ -1,6 +1,7 @@
 from pymupdf4llm import to_markdown, use_layout
 from typing import Optional
 import io
+import os
 from dotenv import load_dotenv
 
 # 确保在初始化之前加载环境变量
