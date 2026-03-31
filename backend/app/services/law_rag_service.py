@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Optional
 from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.vector_stores.chroma import ChromaVectorStore
 import chromadb
-from app.services.modelscope_embedding import ModelScopeEmbedding
+
 from app.services.llm import llm_service
 from app.services.law_scraper import law_scraper_service
 
@@ -52,8 +52,19 @@ class LawRAGService:
             # 创建向量存储
             vector_store = ChromaVectorStore(chroma_collection=collection)
             
-            # 创建嵌入模型
-            self.embed_model = ModelScopeEmbedding(model_name="BAAI/bge-small-zh-v1.5")
+            # 创建嵌入模型（使用 DashScope 远程嵌入模型）
+            import os
+            api_key = os.getenv("DASHSCOPE_API_KEY")
+            
+            if not api_key:
+                logger.warning("DASHSCOPE_API_KEY not found, please set it in environment variables")
+                # 这里我们继续初始化，但实际使用时可能会失败
+                # 可以考虑添加备用方案
+                
+            from langchain_community.embeddings import DashScopeEmbeddings
+            from llama_index.embeddings.langchain import LangchainEmbedding
+            langchain_embedding = DashScopeEmbeddings(model="text-embedding-v1", dashscope_api_key=api_key)
+            self.embed_model = LangchainEmbedding(langchain_embedding)
             
             # 设置全局配置
             Settings.embed_model = self.embed_model

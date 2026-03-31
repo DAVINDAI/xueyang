@@ -173,10 +173,18 @@ class PDFProcessor:
             # 导入必要的模块
             from llama_index.core import Settings, StorageContext
             from llama_index.core.node_parser import SentenceSplitter
-            from app.services.modelscope_embedding import ModelScopeEmbedding
+            # 创建嵌入模型（优先使用 DashScope 远程嵌入模型）
+            import os
+            api_key = os.getenv("DASHSCOPE_API_KEY")
             
-            # 创建嵌入模型
-            embed_model = ModelScopeEmbedding(model_name="BAAI/bge-small-zh-v1.5")
+            if not api_key:
+                logger.warning("DASHSCOPE_API_KEY not found, please set it in environment variables")
+                return None
+                
+            from langchain_community.embeddings import DashScopeEmbeddings
+            from llama_index.embeddings.langchain import LangchainEmbedding
+            langchain_embedding = DashScopeEmbeddings(model="text-embedding-v1", dashscope_api_key=api_key)
+            embed_model = LangchainEmbedding(langchain_embedding)
             
             # 创建节点解析器
             node_parser = SentenceSplitter(

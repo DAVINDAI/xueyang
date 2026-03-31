@@ -37,17 +37,15 @@ class LlamaIndexService:
             
             api_key = os.getenv("DASHSCOPE_API_KEY")
             if not api_key:
-                logger.warning("DASHSCOPE_API_KEY not found, using local ModelScope model")
-                # 使用ModelScope本地模型 - 超轻量级中文嵌入模型，适合2G内存环境
-                self.embed_model = ModelScopeEmbedding(
-                    model_name="BAAI/bge-small-zh-v1.5"
-                )
+                logger.warning("DASHSCOPE_API_KEY not found, please set it in environment variables")
+                # 可以考虑添加备用方案，或者抛出异常
+                raise Exception("DASHSCOPE_API_KEY is required for embedding model")
             else:
                 # 使用DashScope远程模型
                 from langchain_community.embeddings import DashScopeEmbeddings
                 from llama_index.embeddings.langchain import LangchainEmbedding
                 langchain_embedding = DashScopeEmbeddings(
-                    model="text-embedding-v1"
+                    model="text-embedding-v1", dashscope_api_key=api_key
                 )
                 self.embed_model = LangchainEmbedding(langchain_embedding)
             
