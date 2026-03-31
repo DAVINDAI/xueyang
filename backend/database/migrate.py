@@ -10,7 +10,7 @@ import os
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'xueyang.db')
 
 # SQL文件路径
-SQL_FILE = os.path.join(os.path.dirname(__file__), 'migrations', 'create_assistant_tables.sql')
+SQL_FILE = os.path.join(os.path.dirname(__file__), 'migrations', 'create_goal_task_tables.sql')
 
 def run_migration():
     """
