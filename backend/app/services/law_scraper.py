@@ -159,15 +159,16 @@ class LawScraperService:
                         
                         # 在新页面上也注册下载事件处理器
                         async def handle_new_page_download(download):
-                            # 获取下载的文件路径
-                            download_path = await download.path()
                             # 重命名文件到指定目录
                             import shutil
                             new_path = os.path.join(download_dir, download.suggested_filename)
-                            # 如果文件已存在，先删除
+                            # 如果文件已存在，跳过下载和处理
                             if os.path.exists(new_path):
-                                logger.warning(f"文件已存在: {new_path}，删除旧文件")
-                                os.remove(new_path)
+                                logger.info(f"文件已存在: {new_path}，跳过下载和处理")
+                                return
+                            # 获取下载的文件路径
+                            download_path = await download.path()
+                            # 移动文件到指定位置
                             shutil.move(download_path, new_path)
                             logger.info(f"下载文件保存到: {new_path}")
                             
