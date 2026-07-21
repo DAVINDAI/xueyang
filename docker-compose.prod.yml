@@ -36,6 +36,13 @@ services:
     image: crpi-76fbd77t4270ljs4-vpc.cn-hangzhou.personal.cr.aliyuncs.com/xueyang_me/frontend:latest
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl/xueyang.me.pem:/etc/nginx/ssl/xueyang.me.pem:ro
+      - ./ssl/xueyang.me.key:/etc/nginx/ssl/xueyang.me.key:ro
+      - ./ssl/project.xueyang.me.pem:/etc/nginx/ssl/project.xueyang.me.pem:ro
+      - ./ssl/project.xueyang.me.key:/etc/nginx/ssl/project.xueyang.me.key:ro
+      - ./ssl/nginx_ssl.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       backend:
         condition: service_healthy

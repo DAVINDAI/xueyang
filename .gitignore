@@ -53,6 +53,10 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# SSL certificates (do not commit private keys)
+ssl/*.pem
+ssl/*.key
+
 # Build
 frontend/dist/
 frontend/.vite/

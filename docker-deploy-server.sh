@@ -133,7 +133,7 @@ check_health() {
     
     echo ""
     echo "检查前端服务..."
-    if curl -f http://localhost:80 &> /dev/null; then
+    if curl -fk https://localhost &> /dev/null; then
         echo "✓ 前端服务正常"
     else
         echo "⚠ 前端服务可能未正常启动，请检查日志"
@@ -153,11 +153,11 @@ show_logs() {
     echo "========================================="
     echo ""
     echo "访问地址:"
-    echo "  前端: http://47.110.67.241"
-    echo "  后端: http://47.110.67.241/api"
-    echo "  API文档: http://47.110.67.241/docs"
-    echo "  OpenAPI: http://47.110.67.241/openapi.json"
-    echo "  ReDoc: http://47.110.67.241/redoc"
+    echo "  前端: https://xueyang.me"
+    echo "  后端: https://xueyang.me/api"
+    echo "  API文档: https://xueyang.me/docs"
+    echo "  OpenAPI: https://xueyang.me/openapi.json"
+    echo "  ReDoc: https://xueyang.me/redoc"
     echo ""
     echo "常用命令:"
     echo "  查看日志: docker compose -f ${PROJECT_DIR}/docker-compose.prod.yml logs -f"
