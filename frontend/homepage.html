@@ -3,107 +3,1164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xueyang.me</title>
+
+    <title>戴洪涛 | AI 应用架构师 / 后端架构师</title>
+    <meta name="description" content="戴洪涛，杭州，16 年全栈/后端经验，聚焦 AI Native 应用工程化、Agent / RAG / LLM 可观测、成本治理与后端分布式架构落地。">
+    <meta name="keywords" content="戴洪涛,AI应用架构师,Agent架构,RAG,LLM工程化,LangGraph,Java架构师,Spring Cloud,后端架构师,杭州">
+    <meta name="author" content="戴洪涛 (Hongtao Dai)">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#111210">
+    <link rel="canonical" href="https://xueyang.me/">
+
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="戴洪涛 | AI 应用架构师 / 后端架构师">
+    <meta property="og:description" content="16 年全栈/后端经验，聚焦 Agent、RAG、LLM 工程治理和真实业务系统落地。">
+    <meta property="og:url" content="https://xueyang.me/">
+    <meta property="og:locale" content="zh_CN">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "戴洪涛",
+      "alternateName": "Hongtao Dai",
+      "jobTitle": "AI 应用架构师 / 后端架构师",
+      "url": "https://xueyang.me/",
+      "email": "mailto:davindai@foxmail.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "杭州",
+        "addressRegion": "浙江",
+        "addressCountry": "CN"
+      },
+      "alumniOf": {
+        "@type": "CollegeOrUniversity",
+        "name": "东华理工大学"
+      },
+      "sameAs": [
+        "https://github.com/DAVINDAI/xueyang",
+        "https://learn.xueyang.me",
+        "https://project.xueyang.me"
+      ],
+      "knowsAbout": [
+        "AI 应用架构",
+        "Agent",
+        "RAG",
+        "LangGraph",
+        "LLM 工程化",
+        "Java",
+        "Spring Cloud",
+        "微服务",
+        "分布式系统"
+      ],
+      "worksFor": [
+        { "@type": "Organization", "name": "浙江大华技术股份有限公司", "startDate": "2020-09", "endDate": "2026-03" },
+        { "@type": "Organization", "name": "度小满科技有限公司", "startDate": "2018-06", "endDate": "2020-08" },
+        { "@type": "Organization", "name": "百度在线网络技术有限公司", "startDate": "2012-08", "endDate": "2018-05" }
+      ]
+    }
+    </script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #111210;
+            --surface: #181917;
+            --surface-strong: #20211f;
+            --surface-soft: #141513;
+            --border: #30332d;
+            --border-strong: #43473f;
+            --text: #eceee8;
+            --text-soft: #c9ccc3;
+            --text-muted: #92978b;
+            --accent: #56b870;
+            --accent-soft: rgba(86, 184, 112, 0.14);
+            --blue: #6aa8ff;
+            --blue-soft: rgba(106, 168, 255, 0.13);
+            --gold: #e2a94b;
+            --gold-soft: rgba(226, 169, 75, 0.13);
+            --danger: #ef6f6c;
+            --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 76px;
+        }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: #0d1117;
-            color: #c9d1d9;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background:
+                linear-gradient(180deg, rgba(86, 184, 112, 0.07), transparent 360px),
+                var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.7;
+            text-rendering: optimizeLegibility;
+        }
+
+        a {
+            color: inherit;
         }
 
         .container {
-            text-align: center;
-            padding: 2rem;
+            width: min(1120px, calc(100% - 40px));
+            margin: 0 auto;
         }
 
-        h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #58a6ff;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            border-bottom: 1px solid rgba(67, 71, 63, 0.78);
+            background: rgba(17, 18, 16, 0.88);
+            backdrop-filter: blur(14px);
         }
 
-        .subtitle {
-            font-size: 1.1rem;
-            color: #8b949e;
-            margin-bottom: 3rem;
-        }
-
-        .links {
+        .nav-inner {
             display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            min-height: 64px;
         }
 
-        .link-card {
-            display: block;
-            width: 240px;
-            padding: 2rem 1.5rem;
-            border-radius: 12px;
-            border: 1px solid #30363d;
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-weight: 700;
             text-decoration: none;
-            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-            background: #161b22;
+            white-space: nowrap;
         }
 
-        .link-card:hover {
-            border-color: #58a6ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 24px rgba(88, 166, 255, 0.12);
+        .brand-mark {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--accent);
+            font-size: 0.84rem;
+            letter-spacing: 0.04em;
         }
 
-        .card-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            list-style: none;
         }
 
-        .card-title {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: #e6edf3;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-desc {
+        .nav-links a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 8px;
+            color: var(--text-muted);
             font-size: 0.9rem;
-            color: #8b949e;
+            text-decoration: none;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a:focus-visible {
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        .section-kicker {
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            margin-bottom: 28px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            font-size: clamp(1.35rem, 2vw, 1.85rem);
+            line-height: 1.25;
+        }
+
+        .hero {
+            padding: 136px 0 72px;
+        }
+
+        .hero-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+            gap: 40px;
+            align-items: end;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 6px 10px;
+            border: 1px solid rgba(86, 184, 112, 0.34);
+            border-radius: 8px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .hero h1 {
+            max-width: 820px;
+            color: var(--text);
+            font-size: clamp(2.7rem, 6.4vw, 5.7rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0;
+        }
+
+        .hero h1 span {
+            display: block;
+            margin-top: 14px;
+            color: var(--text-soft);
+            font-size: clamp(1.35rem, 2.7vw, 2.25rem);
+            font-weight: 650;
+            line-height: 1.22;
+        }
+
+        .hero-summary {
+            max-width: 760px;
+            margin-top: 24px;
+            color: var(--text-soft);
+            font-size: clamp(1rem, 1.4vw, 1.16rem);
+            line-height: 1.88;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 16px;
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.94rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .button:hover,
+        .button:focus-visible {
+            transform: translateY(-1px);
+            border-color: var(--accent);
+            background: var(--surface-strong);
+            outline: none;
+        }
+
+        .button.primary {
+            border-color: rgba(86, 184, 112, 0.5);
+            background: var(--accent);
+            color: #071109;
+        }
+
+        .profile-panel {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(24, 25, 23, 0.86);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .profile-panel header {
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-name {
+            color: var(--text);
+            font-weight: 800;
+            font-size: 1.08rem;
+        }
+
+        .profile-role {
+            margin-top: 2px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .profile-list {
+            display: grid;
+            gap: 1px;
+            background: var(--border);
+            list-style: none;
+        }
+
+        .profile-list li {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 13px 18px;
+            background: var(--surface);
+            color: var(--text-soft);
+            font-size: 0.92rem;
+        }
+
+        .profile-list span:first-child {
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 36px;
+        }
+
+        .metric {
+            min-height: 118px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface-soft);
+        }
+
+        .metric strong {
+            display: block;
+            color: var(--text);
+            font-size: clamp(1.45rem, 2.5vw, 2rem);
+            line-height: 1.1;
+        }
+
+        .metric span {
+            display: block;
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
             line-height: 1.5;
         }
 
+        .band {
+            border-top: 1px solid rgba(67, 71, 63, 0.55);
+            border-bottom: 1px solid rgba(67, 71, 63, 0.55);
+            background: rgba(24, 25, 23, 0.56);
+        }
+
+        .positioning {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .lead {
+            color: var(--text-soft);
+            font-size: 1.04rem;
+            line-height: 1.9;
+        }
+
+        .fit-box {
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .fit-box h3 {
+            margin-bottom: 12px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .fit-tags,
+        .tech-stack,
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-soft);
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        .strengths,
+        .skill-groups {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .strength-card,
+        .skill-group,
+        .project {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .strength-card {
+            min-height: 178px;
+            padding: 20px;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .strength-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .strength-card .card-label {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            margin-bottom: 14px;
+            padding: 0 8px;
+            border-radius: 6px;
+            background: var(--blue-soft);
+            color: var(--blue);
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .strength-card:nth-child(2n) .card-label {
+            background: var(--gold-soft);
+            color: var(--gold);
+        }
+
+        .strength-card:nth-child(3n) .card-label {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .strength-card h3,
+        .project h3,
+        .skill-group h3 {
+            color: var(--text);
+            font-size: 1.03rem;
+            line-height: 1.35;
+        }
+
+        .strength-card p,
+        .project-summary,
+        .timeline-desc {
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.72;
+        }
+
+        .project {
+            padding: 24px;
+            margin-bottom: 18px;
+        }
+
+        .project:last-child {
+            margin-bottom: 0;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        .project-role {
+            flex: 0 0 auto;
+            padding: 4px 10px;
+            border: 1px solid rgba(86, 184, 112, 0.34);
+            border-radius: 6px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .project-meta {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 0.86rem;
+        }
+
+        .impact-list {
+            display: grid;
+            gap: 8px;
+            margin: 18px 0;
+            list-style: none;
+        }
+
+        .impact-list li {
+            position: relative;
+            padding-left: 18px;
+            color: var(--text-soft);
+            font-size: 0.94rem;
+            line-height: 1.68;
+        }
+
+        .impact-list li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.72em;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+
+        .project-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .app-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .app-link {
+            display: inline-flex;
+            align-items: center;
+            min-height: 36px;
+            padding: 0 12px;
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .app-link:hover,
+        .app-link:focus-visible {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            outline: none;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 7px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 28px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: -26px;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--bg);
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-company {
+            color: var(--text);
+            font-weight: 800;
+        }
+
+        .timeline-period {
+            color: var(--text-muted);
+            font-size: 0.84rem;
+            white-space: nowrap;
+        }
+
+        .timeline-role {
+            color: var(--blue);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .skill-group {
+            padding: 18px;
+        }
+
+        .skill-group h3 {
+            margin-bottom: 12px;
+            font-size: 0.98rem;
+        }
+
+        .contact-panel {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 24px;
+            align-items: center;
+            padding: 26px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .contact-panel p {
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+
         footer {
-            position: fixed;
-            bottom: 1.5rem;
-            font-size: 0.8rem;
-            color: #484f58;
+            padding: 34px 0;
+            border-top: 1px solid var(--border);
+            color: #777c71;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.84rem;
+            line-height: 1.8;
+        }
+
+        footer a {
+            color: #8b9184;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+
+        .beian-icon {
+            width: 14px;
+            height: 14px;
+            margin-right: 2px;
+            vertical-align: text-bottom;
+        }
+
+        @media (max-width: 900px) {
+            .hero-layout,
+            .positioning,
+            .contact-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics,
+            .strengths,
+            .skill-groups {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .profile-panel {
+                max-width: 520px;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .container {
+                width: min(100% - 28px, 1120px);
+            }
+
+            .site-header {
+                position: sticky;
+            }
+
+            .nav-inner {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 0;
+            }
+
+            .nav-links {
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 2px;
+            }
+
+            .nav-links a {
+                padding: 0 10px;
+                white-space: nowrap;
+            }
+
+            section {
+                padding: 56px 0;
+            }
+
+            .hero {
+                padding: 44px 0 52px;
+            }
+
+            .metrics,
+            .strengths,
+            .skill-groups {
+                grid-template-columns: 1fr;
+            }
+
+            .project,
+            .contact-panel {
+                padding: 18px;
+            }
+
+            .project-header,
+            .project-footer,
+            .timeline-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .timeline-period {
+                white-space: normal;
+            }
+
+            .button,
+            .app-link {
+                width: 100%;
+            }
+
+            .hero-actions,
+            .app-links {
+                width: 100%;
+            }
         }
     </style>
+
+    <!-- 百度统计 -->
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?79c6ff36893ecf52e02f409b848cfba4";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h1>xueyang.me</h1>
-        <p class="subtitle">学氧 · 思考与创造的空间</p>
-        <div class="links">
-            <a class="link-card" href="https://learn.xueyang.me">
-                <div class="card-icon">📚</div>
-                <div class="card-title">学氧助手</div>
-                <div class="card-desc">AI 驱动的学习助手，助力深度思考与知识探索</div>
+    <header class="site-header">
+        <nav class="container nav-inner" aria-label="主导航">
+            <a class="brand" href="#top" aria-label="回到首页">
+                <span class="brand-mark">DH</span>
+                <span>戴洪涛</span>
             </a>
-            <a class="link-card" href="https://project.xueyang.me">
-                <div class="card-icon">🚀</div>
-                <div class="card-title">AI Native</div>
-                <div class="card-desc">AI 原生微服务项目，诊断引擎与智能定价</div>
-            </a>
+            <ul class="nav-links">
+                <li><a href="#about">定位</a></li>
+                <li><a href="#projects">项目</a></li>
+                <li><a href="#experience">经历</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#contact">联系</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="container">
+                <div class="hero-layout">
+                    <div>
+                        <div class="eyebrow">AI Native · Agent · RAG · LLM 工程治理</div>
+                        <h1 id="hero-title">
+                            戴洪涛
+                            <span>AI 应用架构师 / 后端架构师</span>
+                        </h1>
+                        <p class="hero-summary">
+                            16 年全栈与后端一线经验，从百度、度小满到大华，长期负责分布式系统、平台架构和项目交付。近两年聚焦 AI Native 应用工程化，把 Agent、RAG、多模型接入、可观测、成本治理和安全边界做成可上线、可运维的业务系统。
+                        </p>
+                        <div class="hero-actions" aria-label="主要操作">
+                            <a class="button primary" href="mailto:davindai@foxmail.com">联系我</a>
+                            <a class="button" href="#projects">查看代表项目</a>
+                            <a class="button" href="https://github.com/DAVINDAI/xueyang" target="_blank" rel="noopener noreferrer">GitHub</a>
+                        </div>
+                    </div>
+
+                    <aside class="profile-panel" aria-label="简历摘要">
+                        <header>
+                            <div class="profile-name">Hongtao Dai</div>
+                            <div class="profile-role">杭州 · AI 应用 / 后端架构</div>
+                        </header>
+                        <ul class="profile-list">
+                            <li><span>邮箱</span><a href="mailto:davindai@foxmail.com">davindai@foxmail.com</a></li>
+                            <li><span>学历</span><span>东华理工大学 · 本科</span></li>
+                            <li><span>经验</span><span>16 年全栈 / 后端</span></li>
+                            <li><span>方向</span><span>Agent / RAG / Java 架构</span></li>
+                        </ul>
+                    </aside>
+                </div>
+
+                <div class="metrics" aria-label="关键成果">
+                    <div class="metric">
+                        <strong>16 年</strong>
+                        <span>全栈 / 后端 / 分布式系统经验</span>
+                    </div>
+                    <div class="metric">
+                        <strong>2 个</strong>
+                        <span>AI Native 应用从 0 到 1 上线</span>
+                    </div>
+                    <div class="metric">
+                        <strong>40 万</strong>
+                        <span>人员规模门禁联网项目交付</span>
+                    </div>
+                    <div class="metric">
+                        <strong>2h → 15min</strong>
+                        <span>热备产品故障恢复时间优化</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="band" aria-labelledby="about-title">
+            <div class="container">
+                <div class="section-kicker">Positioning</div>
+                <h2 id="about-title" class="section-title">个人定位</h2>
+                <div class="positioning">
+                    <p class="lead">
+                        我不是模型训练方向，而是偏“AI 能力进入真实业务系统之后”的工程落地方向：Agent 架构、RAG、多模型接入、Prompt 结构化输出、LLM 调用可观测、Token 成本治理、智能体效果评估、工程交付和安全边界控制。底层能力来自长期后端、微服务、数据一致性、性能优化和容器化部署经验。
+                    </p>
+                    <div class="fit-box">
+                        <h3>更匹配的岗位</h3>
+                        <div class="fit-tags">
+                            <span class="tag">AI 应用架构师</span>
+                            <span class="tag">后端架构师</span>
+                            <span class="tag">LLM 工程化负责人</span>
+                            <span class="tag">Agent / RAG 落地</span>
+                            <span class="tag">平台型系统建设</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="strength-title">
+            <div class="container">
+                <div class="section-kicker">Strengths</div>
+                <h2 id="strength-title" class="section-title">核心能力</h2>
+                <div class="strengths">
+                    <article class="strength-card">
+                        <div class="card-label">AI Architecture</div>
+                        <h3>AI 应用架构</h3>
+                        <p>熟悉 RAG、Agent、多模型接入、Prompt 结构化输出和智能体工作流编排，能把 LangGraph、LlamaIndex、Chroma、LangSmith 等工具链落到可交付系统。</p>
+                    </article>
+                    <article class="strength-card">
+                        <div class="card-label">Governance</div>
+                        <h3>LLM 工程治理</h3>
+                        <p>独立设计 AI 应用诊断、成本与效果治理平台，覆盖定价、日志、Token 成本统计、诊断智能体、评估闭环和 Docker 一体化部署。</p>
+                    </article>
+                    <article class="strength-card">
+                        <div class="card-label">Backend</div>
+                        <h3>后端与分布式系统</h3>
+                        <p>深耕 Java、Spring Cloud、MySQL、Redis、RabbitMQ、Kafka、Nacos、APISIX，具备微服务拆分、数据一致性和性能优化经验。</p>
+                    </article>
+                    <article class="strength-card">
+                        <div class="card-label">Delivery</div>
+                        <h3>架构交付与治理</h3>
+                        <p>主导过 10 人团队项目交付、单体组件化拆分、国产数据库适配、热备产品化和 SSDLC 安全流程落地，能在收益、风险与业务价值之间做取舍。</p>
+                    </article>
+                    <article class="strength-card">
+                        <div class="card-label">AI Coding</div>
+                        <h3>AI 辅助研发实践</h3>
+                        <p>分别使用 OpenCode + Superpowers 和 CodeBuddy + SpecKit 两套工作流交付同一项目，通过对比实践形成对 AI Agent 工程化的独立判断。</p>
+                    </article>
+                    <article class="strength-card">
+                        <div class="card-label">Thinking</div>
+                        <h3>工程化思考习惯</h3>
+                        <p>习惯从底层原理理解技术，对数据结构、I/O 模型、分布式共识和工程边界有系统化沉淀，不满足于表面结论。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="band" aria-labelledby="projects-title">
+            <div class="container">
+                <div class="section-kicker">Selected Work</div>
+                <h2 id="projects-title" class="section-title">代表项目</h2>
+
+                <article class="project">
+                    <div class="project-header">
+                        <div>
+                            <h3>AI Native：AI 应用诊断、成本与效果治理平台</h3>
+                            <p class="project-meta">Java 21 · Spring Boot 3 · Spring Cloud · RabbitMQ · MySQL · Redis · Nacos · APISIX · React 18 · Docker Compose</p>
+                        </div>
+                        <span class="project-role">独立架构 / 全栈开发</span>
+                    </div>
+                    <p class="project-summary">
+                        面向 AI 应用上线后的可观测、可诊断、可评估和可治理问题，构建从调用采集、成本统计、诊断推理到效果评估的工程闭环。
+                    </p>
+                    <ul class="impact-list">
+                        <li>设计定价、日志、诊断、评估四个微服务，支撑 LLM 调用记录、Token 成本、异常诊断和评分回流。</li>
+                        <li>设计 Agent 多轮推理引擎，让 LLM 负责判断与归因，实际采集由受控 DataCollector 完成。</li>
+                        <li>通过工具白名单限制调用边界，结合 SSE、Flyway、JaCoCo 和 k6 覆盖交互、交付、质量与性能验证。</li>
+                    </ul>
+                    <div class="project-footer">
+                        <div class="tech-stack" aria-label="技术标签">
+                            <span class="tag">LangGraph</span>
+                            <span class="tag">Agent 架构</span>
+                            <span class="tag">旁路日志采集</span>
+                            <span class="tag">成本治理</span>
+                            <span class="tag">k6 压测</span>
+                        </div>
+                        <div class="app-links">
+                            <a class="app-link" href="https://project.xueyang.me" target="_blank" rel="noopener noreferrer">访问项目</a>
+                            <a class="app-link" href="https://github.com/DAVINDAI/ai_native" target="_blank" rel="noopener noreferrer">源码</a>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="project">
+                    <div class="project-header">
+                        <div>
+                            <h3>学氧助手：AI 智能学习平台</h3>
+                            <p class="project-meta">Vue3 · Vite · Element Plus · FastAPI · LangGraph · LlamaIndex · Chroma · SQLite · Docker · Nginx</p>
+                        </div>
+                        <span class="project-role">独立架构 / 全栈开发</span>
+                    </div>
+                    <p class="project-summary">
+                        从产品原型、架构设计、前后端开发到 ECS 部署上线，独立完成一套轻量化 AI 学习平台，验证多模型、RAG 和 Agent 工作流的工程化组合。
+                    </p>
+                    <ul class="impact-list">
+                        <li>集成 AI 对话、语义搜索、编码练习、笔记管理、简历优化和法律 RAG 等模块。</li>
+                        <li>统一封装多模型调用，基于 LangGraph 编排 Agent 工作流，并用 LangSmith 支持调试追踪。</li>
+                        <li>采用 SQLite + Chroma 的轻量方案，在 2C2G ECS 上通过 Docker Compose 部署上线。</li>
+                    </ul>
+                    <div class="project-footer">
+                        <div class="tech-stack" aria-label="技术标签">
+                            <span class="tag">RAG</span>
+                            <span class="tag">Chroma 向量库</span>
+                            <span class="tag">多模型接入</span>
+                            <span class="tag">LangSmith</span>
+                            <span class="tag">Tavily 搜索</span>
+                        </div>
+                        <div class="app-links">
+                            <a class="app-link" href="https://learn.xueyang.me" target="_blank" rel="noopener noreferrer">访问应用</a>
+                            <a class="app-link" href="https://github.com/DAVINDAI/xueyang" target="_blank" rel="noopener noreferrer">源码</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="experience" aria-labelledby="experience-title">
+            <div class="container">
+                <div class="section-kicker">Experience</div>
+                <h2 id="experience-title" class="section-title">工作经历</h2>
+                <div class="timeline">
+                    <article class="timeline-item">
+                        <div class="timeline-header">
+                            <h3 class="timeline-company">浙江大华技术股份有限公司</h3>
+                            <span class="timeline-period">2020.09 - 2026.03</span>
+                        </div>
+                        <div class="timeline-role">资深工程师</div>
+                        <p class="timeline-desc">
+                            负责智慧物联、门禁、基础视频服务等方向的后端架构设计与组件化改造。主导某国有大行全国门禁联网项目交付（10 人团队、40 万人员）、基础视频服务拆分为 6 个独立模块、Rose 热备产品化（故障恢复 2h 到 15min，年售 300+ 套）和 SSDLC 安全研发流程落地。
+                        </p>
+                    </article>
+                    <article class="timeline-item">
+                        <div class="timeline-header">
+                            <h3 class="timeline-company">度小满科技有限公司</h3>
+                            <span class="timeline-period">2018.06 - 2020.08</span>
+                        </div>
+                        <div class="timeline-role">高级工程师</div>
+                        <p class="timeline-desc">
+                            参与信贷权益中台、协议管理平台架构优化和上云迁移；参与 2020 北京春晚红包活动保障，10 实例集群支撑 4000 QPS；使用 Kafka 解耦借贷与协议签署流程。
+                        </p>
+                    </article>
+                    <article class="timeline-item">
+                        <div class="timeline-header">
+                            <h3 class="timeline-company">百度在线网络技术有限公司</h3>
+                            <span class="timeline-period">2012.10 - 2018.05</span>
+                        </div>
+                        <div class="timeline-role">后端工程师</div>
+                        <p class="timeline-desc">
+                            0 到 1 搭建消费信贷机构数据管理系统，支撑 5 大垂类、近 3000 家商户接入，接入耗时从一周缩短至 2 天。此前在百度国际化、数据挖掘团队从事数据管理平台开发。
+                        </p>
+                    </article>
+                    <article class="timeline-item">
+                        <div class="timeline-header">
+                            <h3 class="timeline-company">上海群硕软件有限公司</h3>
+                            <span class="timeline-period">2010.05 - 2012.09</span>
+                        </div>
+                        <div class="timeline-role">全栈工程师</div>
+                        <p class="timeline-desc">早期全栈开发，积累 Web 应用、前后端协作和企业项目交付经验。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="band" aria-labelledby="skills-title">
+            <div class="container">
+                <div class="section-kicker">Stack</div>
+                <h2 id="skills-title" class="section-title">技术栈</h2>
+                <div class="skill-groups">
+                    <section class="skill-group" aria-labelledby="skill-ai">
+                        <h3 id="skill-ai">AI 应用架构与框架</h3>
+                        <div class="skill-tags">
+                            <span class="tag">LangGraph</span>
+                            <span class="tag">LlamaIndex</span>
+                            <span class="tag">Chroma</span>
+                            <span class="tag">LangSmith</span>
+                            <span class="tag">Tavily</span>
+                            <span class="tag">RAG</span>
+                            <span class="tag">Agent</span>
+                            <span class="tag">Prompt 工程</span>
+                        </div>
+                    </section>
+                    <section class="skill-group" aria-labelledby="skill-backend">
+                        <h3 id="skill-backend">后端与分布式架构</h3>
+                        <div class="skill-tags">
+                            <span class="tag">Java</span>
+                            <span class="tag">Spring Boot 3</span>
+                            <span class="tag">Spring Cloud</span>
+                            <span class="tag">MyBatis-Plus</span>
+                            <span class="tag">FastAPI</span>
+                            <span class="tag">Feign</span>
+                            <span class="tag">微服务架构</span>
+                        </div>
+                    </section>
+                    <section class="skill-group" aria-labelledby="skill-data">
+                        <h3 id="skill-data">数据与中间件</h3>
+                        <div class="skill-tags">
+                            <span class="tag">MySQL</span>
+                            <span class="tag">Redis</span>
+                            <span class="tag">RabbitMQ</span>
+                            <span class="tag">Kafka</span>
+                            <span class="tag">Nacos</span>
+                            <span class="tag">SQLite</span>
+                            <span class="tag">Flyway</span>
+                        </div>
+                    </section>
+                    <section class="skill-group" aria-labelledby="skill-devops">
+                        <h3 id="skill-devops">网关与部署运维</h3>
+                        <div class="skill-tags">
+                            <span class="tag">Nginx</span>
+                            <span class="tag">APISIX</span>
+                            <span class="tag">Docker</span>
+                            <span class="tag">Docker Compose</span>
+                            <span class="tag">Helm</span>
+                            <span class="tag">CI/CD</span>
+                            <span class="tag">阿里云 ECS</span>
+                        </div>
+                    </section>
+                    <section class="skill-group" aria-labelledby="skill-front">
+                        <h3 id="skill-front">前端</h3>
+                        <div class="skill-tags">
+                            <span class="tag">Vue3</span>
+                            <span class="tag">React 18</span>
+                            <span class="tag">TypeScript</span>
+                            <span class="tag">Vite</span>
+                            <span class="tag">Element Plus</span>
+                            <span class="tag">TanStack Query</span>
+                            <span class="tag">ECharts</span>
+                            <span class="tag">Recharts</span>
+                        </div>
+                    </section>
+                    <section class="skill-group" aria-labelledby="skill-quality">
+                        <h3 id="skill-quality">工程质量与工具</h3>
+                        <div class="skill-tags">
+                            <span class="tag">k6</span>
+                            <span class="tag">JaCoCo</span>
+                            <span class="tag">SpotBugs</span>
+                            <span class="tag">Git</span>
+                            <span class="tag">OpenCode</span>
+                            <span class="tag">CodeBuddy</span>
+                            <span class="tag">Cursor</span>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" aria-labelledby="contact-title">
+            <div class="container">
+                <div class="contact-panel">
+                    <div>
+                        <div class="section-kicker">Contact</div>
+                        <h2 id="contact-title" class="section-title">联系方式</h2>
+                        <p>
+                            Email: <a href="mailto:davindai@foxmail.com">davindai@foxmail.com</a><br>
+                            浙江杭州 · 东华理工大学本科 · 关注 AI 应用工程化与后端架构
+                        </p>
+                    </div>
+                    <div class="app-links">
+                        <a class="app-link" href="mailto:davindai@foxmail.com">发邮件</a>
+                        <a class="app-link" href="https://learn.xueyang.me" target="_blank" rel="noopener noreferrer">学氧助手</a>
+                        <a class="app-link" href="https://project.xueyang.me" target="_blank" rel="noopener noreferrer">AI Native</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>
+                xueyang.me &copy; 2025-2026 · 学氧 - 思考与创造的空间<br>
+                <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">浙ICP备2026013828号-1</a>
+                &nbsp;
+                <a href="https://beian.mps.gov.cn/#/query/webSearch?code=33010902004583" target="_blank" rel="noopener noreferrer">
+                    <img class="beian-icon" src="/备案图标.png" alt="">浙公网安备33010902004583号
+                </a>
+            </p>
         </div>
-    </div>
-    <footer>xueyang.me &copy; 2025</footer>
+    </footer>
 </body>
 </html>
