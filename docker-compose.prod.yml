@@ -42,6 +42,8 @@ services:
       - ./ssl/xueyang.me.key:/etc/nginx/ssl/xueyang.me.key:ro
       - ./ssl/project.xueyang.me.pem:/etc/nginx/ssl/project.xueyang.me.pem:ro
       - ./ssl/project.xueyang.me.key:/etc/nginx/ssl/project.xueyang.me.key:ro
+      - ./ssl/learn.xueyang.me.pem:/etc/nginx/ssl/learn.xueyang.me.pem:ro
+      - ./ssl/learn.xueyang.me.key:/etc/nginx/ssl/learn.xueyang.me.key:ro
     depends_on:
       backend:
         condition: service_healthy

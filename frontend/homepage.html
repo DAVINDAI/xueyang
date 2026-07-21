@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xueyang.me</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #58a6ff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #8b949e;
+            margin-bottom: 3rem;
+        }
+
+        .links {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .link-card {
+            display: block;
+            width: 240px;
+            padding: 2rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            text-decoration: none;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            background: #161b22;
+        }
+
+        .link-card:hover {
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 24px rgba(88, 166, 255, 0.12);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #e6edf3;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #8b949e;
+            line-height: 1.5;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 1.5rem;
+            font-size: 0.8rem;
+            color: #484f58;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>xueyang.me</h1>
+        <p class="subtitle">学氧 · 思考与创造的空间</p>
+        <div class="links">
+            <a class="link-card" href="https://learn.xueyang.me">
+                <div class="card-icon">📚</div>
+                <div class="card-title">学氧助手</div>
+                <div class="card-desc">AI 驱动的学习助手，助力深度思考与知识探索</div>
+            </a>
+            <a class="link-card" href="https://project.xueyang.me">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">AI Native</div>
+                <div class="card-desc">AI 原生微服务项目，诊断引擎与智能定价</div>
+            </a>
+        </div>
+    </div>
+    <footer>xueyang.me &copy; 2025</footer>
+</body>
+</html>

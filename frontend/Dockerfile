@@ -28,6 +28,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # 复制nginx配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# 复制首页
+COPY homepage.html /usr/share/nginx/html/homepage.html
+
 # 暴露端口
 EXPOSE 80 443
 
