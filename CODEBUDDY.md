@@ -58,7 +58,7 @@ Migrations run automatically via `backend/docker-entrypoint.sh` on container sta
 
 ### Backend (`backend/`)
 
-**Entry point**: `main.py` — Creates the FastAPI app, registers middleware, includes all 14 API routers, and wires up startup/shutdown events.
+**Entry point**: `main.py` — Creates the FastAPI app, registers middleware, includes all 16 API routers, and wires up startup/shutdown events.
 
 **Custom auth middleware** (not FastAPI dependency injection): Every request passes through `auth_middleware` in `main.py`. It checks for a JWT Bearer token; if valid, sets `request.state.user` and `request.state.visitor_id` to the username. If no token, it falls back to `X-Visitor-ID` header or generates a temp UUID. This means the visitor ID is available to all downstream routes and services without explicit dependency injection.
 
@@ -72,13 +72,16 @@ Migrations run automatically via `backend/docker-entrypoint.sh` on container sta
 
 **Other notable API modules**:
 - `resume.py` — PDF upload (PyMuPDF4LLM), LLM-powered analysis covering industry fit, match scoring, and interview preparation
-- `coding_playground.py` — LLM-generated algorithm problems, code submission with evaluation via LangGraph (`code_evaluator_pro.py`) or a simpler evaluator
+- `coding_playground.py` — LLM-generated algorithm problems, code submission with evaluation via LangGraph (`code_evaluator_pro.py`) or a simpler evaluator; also includes HIL (Human-in-the-Loop) evaluation endpoints (`/hil/start`, `/hil/resume`) backed by `code_evaluator_hil.py`
 - `law.py` — Legal document RAG: Playwright-scraped Chinese legal documents indexed in `chroma_law/`, served via semantic search and RAG Q&A
 - `notes.py` — Markdown note CRUD
 - `assistant.py` / `communication.py` — Goal/task management and message polishing features
 - `scheduler.py` — APScheduler-backed cron job management, persistence in `jobs.db`
 - `prompts.py` — Prompt template management with LangSmith hub integration
 - `parse.py` — NLP-based input routing to determine which page a user's query targets
+- `stats.py` — User statistics: session/message counts, model usage distribution, daily message trends (used by DetailsPage)
+- `details.py` — (router file, delegates to stats service)
+- `evolution.py` — AutoGen-based website evolution suggestions (experimental)
 
 **Exception handling**: Custom exception hierarchy in `app/exceptions.py` — `BusinessException`, `SystemException`, `ValidationException` — each with error codes. Global handlers in `main.py` catch both custom exceptions and unexpected errors.
 
@@ -94,7 +97,7 @@ Migrations run automatically via `backend/docker-entrypoint.sh` on container sta
 
 **SSE streaming** (`ChatPage.vue`): Does NOT use Axios. Uses native `fetch` with `ReadableStream` to parse SSE `data:` events. This bypasses the axios interceptors and handles chunk-by-chunk rendering with Markdown, code highlighting (highlight.js), and Mermaid diagram rendering.
 
-**12 routes**: Home (`/`), Login (`/login`), Chat (`/chat`), Coding Playground, Notes (list + detail), Memo, Resume (optimizer + history list), Details (statistics with ECharts), Law, Assistant, Communication. All routes except Home and Login are lazy-loaded. The router has a basic guard that redirects logged-in users from `/login` to `/`.
+**13 routes**: Home (`/`), Login (`/login`), Chat (`/chat`), Coding Playground (`/coding-playground`), Notes list (`/notes`), Note detail (`/notes/:id`), Memo (`/memo`), Resume optimizer (`/resume`), Resume list (`/resume/list`), Details (`/details`), Law (`/law`), Assistant (`/assistant`, `requiresAuth: true`), Communication (`/communication`). All routes except Home and Login are lazy-loaded. The router guard only redirects already-logged-in users away from `/login`; no auth enforcement on other routes except `/assistant`.
 
 **Key pages**:
 - `ChatPage.vue` — Multi-session management, model switching, SSE chat, Markdown rendering with code highlighting and Mermaid support, token counting

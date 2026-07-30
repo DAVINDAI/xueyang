@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException, Body, Request
 from typing import Dict, Any
 import logging
+import uuid
 from app.services.coding_playground import coding_playground_service
 from app.services.problem_generator import problem_generator_service
 from app.services.code_evaluator_pro import code_evaluator_service_pro as code_evaluator_service
+from app.services.code_evaluator_hil import code_evaluator_hil
 from app.exceptions import BusinessException, SystemException, ValidationException, ErrorCode
 
 # 配置日志
@@ -112,3 +114,51 @@ async def get_user_answers(request: Request, problem_id: int) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"获取答题历史失败: {str(e)}")
         raise SystemException(ErrorCode.SYSTEM_ERROR, f"获取答题历史失败: {str(e)}")
+
+
+# ─────────────────────────── HIL 端点 ────────────────────────────
+
+@router.post("/hil/start")
+async def hil_start(
+    request: Request,
+    problem_id: int = Body(...),
+    code: str = Body(...)
+) -> Dict[str, Any]:
+    """
+    HIL 第一阶段：启动 LangGraph，执行到 interrupt 节点后挂起。
+    返回 thread_id 和 AI 分析结果，前端凭 thread_id 发起第二阶段。
+    """
+    try:
+        visitor_id = getattr(request.state, "visitor_id", None)
+        problem = coding_playground_service.get_problem(visitor_id, problem_id)
+        if not problem:
+            raise BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "题目不存在")
+
+        thread_id = f"{visitor_id}-{uuid.uuid4().hex[:8]}"
+        result = code_evaluator_hil.start_evaluation(thread_id, problem, code)
+        return {"success": True, **result}
+
+    except Exception as e:
+        if isinstance(e, (BusinessException, SystemException, ValidationException)):
+            raise
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"HIL 启动失败: {str(e)}")
+
+
+@router.post("/hil/resume")
+async def hil_resume(
+    thread_id: str = Body(...),
+    approved: bool = Body(...)
+) -> Dict[str, Any]:
+    """
+    HIL 第二阶段：用户做出决策（接受/拒绝 AI 修改），graph 从断点继续。
+    approved=true  → 采用 AI 修复代码
+    approved=false → 保留用户原代码
+    """
+    try:
+        result = code_evaluator_hil.resume_evaluation(thread_id, approved)
+        return {"success": True, **result}
+
+    except Exception as e:
+        if isinstance(e, (BusinessException, SystemException, ValidationException)):
+            raise
+        raise SystemException(ErrorCode.SYSTEM_ERROR, f"HIL 恢复失败: {str(e)}")

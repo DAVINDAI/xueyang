@@ -14,6 +14,7 @@
         <router-link to="/law" class="nav-link">法律<br>助手</router-link>
         <router-link to="/assistant" class="nav-link">协助<br>助手</router-link>
         <router-link to="/communication" class="nav-link">沟通<br>助手</router-link>
+        <a href="https://docs.xueyang.me" target="_blank" class="nav-link docs-link">帮助<br>文档</a>
       </nav>
       <SearchBar />
       <div v-if="isUserLoggedIn" class="user-info">
@@ -216,6 +217,17 @@ body {
   background-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
   border-radius: 4px;
+}
+
+/* 帮助文档链接 - 外部链接视觉区分 */
+.docs-link {
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+}
+.docs-link:hover {
+  border-style: solid;
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
 .router-link-active {
