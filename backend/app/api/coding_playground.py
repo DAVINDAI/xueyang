@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Body, Request
+from fastapi.responses import StreamingResponse
 from typing import Dict, Any
+import json
 import logging
 import uuid
 from app.services.coding_playground import coding_playground_service
@@ -28,17 +30,9 @@ async def get_problem(request: Request, difficulty: int = 1) -> Dict[str, Any]:
         # 尝试获取已有的题目
         problem = coding_playground_service.get_problem_by_difficulty(visitor_id, difficulty)
         
-        # 如果没有对应难度的题目，生成新题目
+        # 如果没有对应难度的题目，生成新题目（generate_problem 内部已写入 DB 并返回带 id 的 dict）
         if not problem:
             problem = problem_generator_service.generate_problem(difficulty, visitor_id)
-            # 保存生成的题目
-            coding_playground_service.add_problem(
-                visitor_id=visitor_id,
-                title=problem["title"],
-                description=problem["description"],
-                difficulty=problem["difficulty"],
-                examples=problem["examples"]
-            )
         
         return {
             "success": True,
@@ -122,11 +116,13 @@ async def get_user_answers(request: Request, problem_id: int) -> Dict[str, Any]:
 async def hil_start(
     request: Request,
     problem_id: int = Body(...),
-    code: str = Body(...)
-) -> Dict[str, Any]:
+    code: str = Body(...),
+    stream: bool = Body(False),
+):
     """
     HIL 第一阶段：启动 LangGraph，执行到 interrupt 节点后挂起。
-    返回 thread_id 和 AI 分析结果，前端凭 thread_id 发起第二阶段。
+    stream=false → 返回 JSON（原有行为）
+    stream=true  → 返回 SSE 流式事件
     """
     try:
         visitor_id = getattr(request.state, "visitor_id", None)
@@ -135,6 +131,16 @@ async def hil_start(
             raise BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "题目不存在")
 
         thread_id = f"{visitor_id}-{uuid.uuid4().hex[:8]}"
+
+        if stream:
+            async def event_gen():
+                async for event in code_evaluator_hil.start_evaluation_stream(
+                    thread_id, problem, code
+                ):
+                    yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+            return StreamingResponse(event_gen(), media_type="text/event-stream")
+
+        # 原有 JSON 路径
         result = code_evaluator_hil.start_evaluation(thread_id, problem, code)
         return {"success": True, **result}
 
@@ -147,14 +153,23 @@ async def hil_start(
 @router.post("/hil/resume")
 async def hil_resume(
     thread_id: str = Body(...),
-    approved: bool = Body(...)
-) -> Dict[str, Any]:
+    approved: bool = Body(...),
+    stream: bool = Body(False),
+):
     """
     HIL 第二阶段：用户做出决策（接受/拒绝 AI 修改），graph 从断点继续。
-    approved=true  → 采用 AI 修复代码
-    approved=false → 保留用户原代码
+    stream=false → 返回 JSON（原有行为）
+    stream=true  → 返回 SSE 流式事件
     """
     try:
+        if stream:
+            async def event_gen():
+                async for event in code_evaluator_hil.resume_evaluation_stream(
+                    thread_id, approved
+                ):
+                    yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+            return StreamingResponse(event_gen(), media_type="text/event-stream")
+
         result = code_evaluator_hil.resume_evaluation(thread_id, approved)
         return {"success": True, **result}
 

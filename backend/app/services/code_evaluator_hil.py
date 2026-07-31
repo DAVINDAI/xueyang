@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, Optional, TypedDict
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, END
@@ -221,30 +221,35 @@ class CodeEvaluatorHil:
             "final_report": "",
         }
 
-        try:
-            # graph 执行到 interrupt() 时会抛出，invoke 返回当前 snapshot
-            result = self.graph.invoke(initial_state, config)
-            # 如果没有 interrupt，说明图已经跑完（理论上不会发生）
-            return {"status": "completed", "report": result.get("final_report")}
+        # 新版 LangGraph interrupt() 不抛异常，invoke 直接返回
+        self.graph.invoke(initial_state, config)
 
-        except Exception as e:
-            # LangGraph interrupt 会通过特殊机制暂停，
-            # 通过 get_state 可以拿到 interrupt 的 payload
-            snapshot = self.graph.get_state(config)
-            interrupts = snapshot.tasks[0].interrupts if snapshot.tasks else []
+        # 通过 get_state 检查是否在 interrupt 断点
+        snapshot = self.graph.get_state(config)
+        interrupts = snapshot.tasks[0].interrupts if snapshot.tasks else []
 
-            if interrupts:
-                payload = interrupts[0].value  # 就是 interrupt({...}) 里传入的字典
-                logger.info(f"[HIL] graph 暂停，thread_id={thread_id}")
-                return {
-                    "status": "waiting_for_human",
-                    "thread_id": thread_id,
-                    "interrupt_payload": payload,   # 发给前端展示
-                }
+        executed_nodes = _extract_executed_nodes(self.graph.get_state_history(config))
+        current_node = snapshot.next[0] if snapshot.next else "end"
 
-            # 真正的异常
-            logger.error(f"[HIL] 执行出错: {e}")
-            raise
+        if interrupts:
+            payload = interrupts[0].value
+            logger.info(f"[HIL] graph 暂停，thread_id={thread_id}")
+            return {
+                "status": "waiting_for_human",
+                "thread_id": thread_id,
+                "interrupt_payload": payload,
+                "current_node": current_node,
+                "executed_nodes": executed_nodes,
+            }
+
+        # 没有 interrupt，说明图已跑完（理论上不会发生）
+        final = snapshot.values
+        return {
+            "status": "completed",
+            "report": final.get("final_report"),
+            "current_node": "end",
+            "executed_nodes": executed_nodes,
+        }
 
     def resume_evaluation(
         self, thread_id: str, approved: bool
@@ -258,16 +263,124 @@ class CodeEvaluatorHil:
         #   value 会成为 interrupt() 的返回值
         result = self.graph.invoke(Command(resume=approved), config)
 
+        snapshot = self.graph.get_state(config)
+        executed_nodes = _extract_executed_nodes(self.graph.get_state_history(config))
+
         logger.info(f"[HIL] graph 执行完毕，thread_id={thread_id}")
         return {
             "status": "completed",
             "human_approved": result.get("human_approved"),
             "final_code": result.get("final_code"),
             "final_report": result.get("final_report"),
+            "current_node": "end",
+            "executed_nodes": executed_nodes,
         }
+
+    # ──────────────────── 流式版（SSE） ────────────────────
+
+    async def start_evaluation_stream(
+        self, thread_id: str, problem: Dict[str, Any], user_code: str
+    ):
+        """
+        SSE 流式版：每完成一个节点就 yield 一个事件，
+        遇到 interrupt 时 yield interrupt 事件后流结束。
+        """
+        config = {"configurable": {"thread_id": thread_id}}
+        initial_state: HilState = {
+            "problem": problem,
+            "user_code": user_code,
+            "analysis": None,
+            "suggested_fix": None,
+            "human_approved": None,
+            "final_code": user_code,
+            "final_report": "",
+        }
+
+        executed: list[str] = []
+
+        # stream_mode="updates"：每完成一个节点就 yield 一次
+        async for chunk in self.graph.astream(initial_state, config, stream_mode="updates"):
+            for node_name in chunk:
+                if node_name != "__start__":
+                    executed.append(node_name)
+                    yield {"type": "node", "node": node_name, "executed": executed}
+
+        # astream 迭代结束 → 检查是 interrupt 还是跑完了
+        snapshot = self.graph.get_state(config)
+        interrupts = snapshot.tasks[0].interrupts if snapshot.tasks else []
+        current_node = snapshot.next[0] if snapshot.next else "end"
+
+        if interrupts:
+            logger.info(f"[HIL] graph 暂停（流式），thread_id={thread_id}")
+            yield {
+                "type": "interrupt",
+                "thread_id": thread_id,
+                "current_node": current_node,
+                "payload": interrupts[0].value,
+                "executed_nodes": executed,
+            }
+        else:
+            final = snapshot.values
+            yield {
+                "type": "done",
+                "final_code": final.get("final_code", ""),
+                "report": final.get("final_report", ""),
+                "executed_nodes": executed,
+            }
+
+    async def resume_evaluation_stream(self, thread_id: str, approved: bool):
+        """
+        流式版 resume：从 checkpoint 继续，逐节点 yield，直到结束或再次 interrupt。
+        """
+        config = {"configurable": {"thread_id": thread_id}}
+
+        executed: list[str] = []
+
+        async for chunk in self.graph.astream(Command(resume=approved), config, stream_mode="updates"):
+            for node_name in chunk:
+                if node_name != "__start__":
+                    executed.append(node_name)
+                    yield {"type": "node", "node": node_name, "executed": executed}
+
+        snapshot = self.graph.get_state(config)
+        interrupts = snapshot.tasks[0].interrupts if snapshot.tasks else []
+
+        if interrupts:
+            yield {
+                "type": "interrupt",
+                "thread_id": thread_id,
+                "current_node": snapshot.next[0] if snapshot.next else "end",
+                "payload": interrupts[0].value,
+                "executed_nodes": executed,
+            }
+        else:
+            final = snapshot.values
+            logger.info(f"[HIL] graph 流式执行完毕，thread_id={thread_id}")
+            yield {
+                "type": "done",
+                "final_code": final.get("final_code", ""),
+                "report": final.get("final_report", ""),
+                "executed_nodes": executed,
+            }
 
 
 # ─────────────────────────── 工具函数 ────────────────────────────
+
+def _extract_executed_nodes(state_history) -> list[str]:
+    """
+    从 get_state_history() 迭代器中提取已执行的节点列表（按执行顺序）。
+    LangGraph 每个 checkpoint 的 metadata['writes'] 记录该步骤写入的节点名。
+    history 是倒序的（最新在前），反转后得到执行顺序。
+    """
+    nodes = []
+    for snapshot in state_history:
+        writes = (snapshot.metadata or {}).get("writes") or {}
+        for node_name in writes:
+            if node_name not in nodes and node_name != "__start__":
+                nodes.append(node_name)
+    nodes.reverse()
+    return nodes
+
 
 def _parse_json(text: str, default: Dict) -> Dict:
     """从 LLM 输出中提取 JSON，失败返回 default。"""

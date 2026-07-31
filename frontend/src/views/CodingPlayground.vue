@@ -33,9 +33,42 @@
         </div>
       </div>
     </div>
+
+    <!-- 理解确认区 -->
+    <div v-if="problem && !showEditor" class="understand-section">
+      <h3>在开始编码之前，请先确认你已理解了题目：</h3>
+      
+      <div class="understand-guide">
+        <div class="guide-question" v-for="(q, idx) in understandChecklist" :key="idx">
+          <el-checkbox v-model="q.checked" :disabled="false" />
+          <span>{{ q.text }}</span>
+        </div>
+      </div>
+
+      <div class="understand-summary">
+        <p class="summary-prompt">用你自己的话简述这道题的核心要求：</p>
+        <el-input 
+          v-model="understandSummary"
+          type="textarea"
+          :rows="3"
+          placeholder="简述：输入是什么？期望输出是什么？边界条件是什么？"
+        />
+      </div>
+
+      <button 
+        @click="startCoding" 
+        class="start-coding-btn"
+        :disabled="!canStartCoding"
+      >
+        我已理解，开始编码
+      </button>
+      <p v-if="!canStartCoding && understandSummary.length > 0" class="hint-text">
+        请勾选所有理解项后开始
+      </p>
+    </div>
     
     <!-- 代码编辑器 -->
-    <div class="code-editor">
+    <div v-if="showEditor" class="code-editor">
       <h3>你的代码：</h3>
       <textarea 
         v-model="userCode" 
@@ -47,6 +80,59 @@
       </button>
     </div>
     
+    <!-- HIL Graph 可视化 -->
+    <div v-if="hilCurrentNode" class="hil-graph-wrap">
+      <h4 class="hil-graph-title">评估流程</h4>
+      <svg class="hil-graph-svg" viewBox="0 0 400 430" xmlns="http://www.w3.org/2000/svg">
+        <!-- 边 -->
+        <g>
+          <line v-for="(e, i) in hilEdges" :key="'e'+i"
+            :x1="nodePos[e.from].x" :y1="nodePos[e.from].y + 20"
+            :x2="nodePos[e.to].x"   :y2="nodePos[e.to].y - 20"
+            stroke="#ccc" stroke-width="1.5" marker-end="url(#arrow)"
+          />
+        </g>
+        <!-- 箭头标记 -->
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#aaa"/>
+          </marker>
+        </defs>
+        <!-- 节点 -->
+        <g v-for="n in hilNodes" :key="n.id" :transform="`translate(${n.x},${n.y})`">
+          <rect :class="getNodeClass(n.id)" x="-55" y="-18" width="110" height="36" rx="8"/>
+          <text class="gnode-text" text-anchor="middle" dominant-baseline="middle">{{ n.label }}</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- HIL：等待人类决策 -->
+    <div v-if="hilPending" class="hil-review-card">
+      <h3>AI 代码分析</h3>
+      <div class="hil-analysis">
+        <p>{{ hilPayload.analysis }}</p>
+      </div>
+      <div v-if="hilPayload.suggested_fix" class="hil-suggested-code">
+        <h4>AI 建议的修复代码：</h4>
+        <pre>{{ hilPayload.suggested_fix }}</pre>
+      </div>
+      <div class="hil-message">{{ hilPayload.message }}</div>
+      <div class="hil-actions">
+        <button @click="hilResume(true)" class="hil-accept-btn" :disabled="loading">接受 AI 修改</button>
+        <button @click="hilResume(false)" class="hil-reject-btn" :disabled="loading">保留我的代码</button>
+      </div>
+    </div>
+
+    <!-- HIL 最终报告 -->
+    <div v-if="hilReport" class="hil-report">
+      <h3>评估报告</h3>
+      <div class="hil-report-content" v-html="hilReportHtml"></div>
+      <div v-if="hilFinalCode" class="final-code">
+        <h4>最终代码：</h4>
+        <pre>{{ hilFinalCode }}</pre>
+      </div>
+    </div>
+
     <!-- 评估结果 -->
     <div v-if="evaluation" class="evaluation-result">
       <h3>评估结果：</h3>
@@ -340,7 +426,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { codingPlaygroundApi } from '../api'
 
 // 响应式数据
@@ -350,6 +436,64 @@ const userCode = ref('')
 const evaluation = ref(null)
 const loading = ref(false)
 const userAnswers = ref([])
+
+// HIL 相关状态
+const hilThreadId = ref(null)
+const hilPending = ref(false)
+const hilPayload = ref({})
+const hilReport = ref('')
+const hilFinalCode = ref('')
+const hilReportHtml = computed(() => hilReport.value.replace(/\n/g, '<br>'))
+const hilCurrentNode = ref(null)     // 当前暂停/执行中的节点
+const hilExecutedNodes = ref([])     // 后端返回的已完成节点列表
+
+// graph 节点定义（固定拓扑）
+const hilNodes = [
+  { id: 'analyze_code',    label: 'AI 分析', x: 200, y: 40 },
+  { id: 'ask_human',       label: '等待决策', x: 200, y: 120 },
+  { id: 'apply_fix',       label: '接受修改', x: 100, y: 210 },
+  { id: 'keep_original',   label: '保留原码', x: 300, y: 210 },
+  { id: 'generate_report', label: '生成报告', x: 200, y: 300 },
+  { id: 'end',             label: 'END',      x: 200, y: 380 },
+]
+const hilEdges = [
+  { from: 'analyze_code',    to: 'ask_human' },
+  { from: 'ask_human',       to: 'apply_fix' },
+  { from: 'ask_human',       to: 'keep_original' },
+  { from: 'apply_fix',       to: 'generate_report' },
+  { from: 'keep_original',   to: 'generate_report' },
+  { from: 'generate_report', to: 'end' },
+]
+const nodePos = Object.fromEntries(hilNodes.map(n => [n.id, { x: n.x, y: n.y }]))
+
+// 纯渲染逻辑：前端不再感知业务节点名，只依赖后端返回的数据
+const getNodeClass = (nodeId) => {
+  if (nodeId === 'end') {
+    return hilCurrentNode.value === 'end' ? 'gnode gnode-passed' : 'gnode'
+  }
+  if (hilCurrentNode.value === nodeId) return 'gnode gnode-active'
+  if (hilExecutedNodes.value.includes(nodeId)) return 'gnode gnode-passed'
+  return 'gnode'
+}
+
+// 理解确认相关
+const showEditor = ref(false)
+const understandSummary = ref('')
+const understandChecklist = ref([
+  { text: '我知道输入的数据格式是什么', checked: false },
+  { text: '我知道期望的输出是什么', checked: false },
+  { text: '我注意到了边界条件（空输入、极大值、负值等）', checked: false },
+  { text: '我在脑子里想好了一个大致的解法', checked: false },
+])
+
+const canStartCoding = computed(() => {
+  return understandChecklist.value.every(q => q.checked)
+})
+
+// 开始编码
+const startCoding = () => {
+  showEditor.value = true
+}
 
 // 安全的日期格式化函数
 const formatDate = (dateStr) => {
@@ -376,6 +520,9 @@ const loadProblem = async () => {
   evaluation.value = null
   userCode.value = ''
   userAnswers.value = []
+  showEditor.value = false
+  understandSummary.value = ''
+  understandChecklist.value.forEach(q => q.checked = false)
   
   try {
     const data = await codingPlaygroundApi.getProblem(difficulty.value)
@@ -415,30 +562,135 @@ const loadUserAnswers = async (problemId) => {
   }
 }
 
-// 提交代码
+// 提交代码（HIL 流式版）
 const submitCode = async () => {
   if (!problem.value || !userCode.value) return
-  
+
   loading.value = true
-  
+  hilPending.value = false
+  hilReport.value = ''
+  hilFinalCode.value = ''
+  hilThreadId.value = null
+  hilCurrentNode.value = null
+  hilExecutedNodes.value = []
+  evaluation.value = null
+
   try {
-    const data = await codingPlaygroundApi.submitCode(
+    const response = await codingPlaygroundApi.hilStartStream(
       problem.value.id,
       userCode.value
     )
-    
-    if (data.success) {
-      evaluation.value = data.evaluation
-      // 重新加载用户答题历史
-      await loadUserAnswers(problem.value.id)
-    } else {
-      alert('提交失败')
-    }
+
+    await consumeSSE(response, {
+      onNode: (nodeName, executed) => {
+        hilCurrentNode.value = nodeName
+        hilExecutedNodes.value = [...executed]
+      },
+      onInterrupt: (event) => {
+        hilThreadId.value = event.thread_id
+        hilCurrentNode.value = event.current_node
+        hilExecutedNodes.value = event.executed_nodes || []
+        hilPending.value = true
+        hilPayload.value = event.payload || {}
+      },
+      onDone: (event) => {
+        hilCurrentNode.value = 'end'
+        hilExecutedNodes.value = event.executed_nodes || []
+        hilReport.value = event.report || '评估完成'
+        hilFinalCode.value = event.final_code || ''
+      },
+    })
   } catch (error) {
     console.error('提交代码失败:', error)
     alert('提交代码失败: ' + (error.message || '网络错误'))
   } finally {
     loading.value = false
+  }
+}
+
+// HIL 第二阶段：用户决策（流式版）
+const hilResume = async (approved) => {
+  if (!hilThreadId.value) return
+
+  loading.value = true
+  hilPending.value = false
+
+  try {
+    const response = await codingPlaygroundApi.hilResumeStream(
+      hilThreadId.value,
+      approved
+    )
+
+    await consumeSSE(response, {
+      onNode: (nodeName, executed) => {
+        hilCurrentNode.value = nodeName
+        hilExecutedNodes.value = [...executed]
+      },
+      onDone: (event) => {
+        hilCurrentNode.value = 'end'
+        hilExecutedNodes.value = event.executed_nodes || []
+        hilReport.value = event.report || ''
+        hilFinalCode.value = event.final_code || ''
+      },
+    })
+
+    // 重新加载答题历史
+    await loadUserAnswers(problem.value.id)
+  } catch (error) {
+    console.error('HIL resume 失败:', error)
+    alert('操作失败: ' + (error.message || '网络错误'))
+  } finally {
+    loading.value = false
+  }
+}
+
+// ──────────── SSE 消费工具 ────────────
+
+/**
+ * 从 fetch 响应中逐事件消费 SSE 流。
+ * 回调：
+ *   onNode(nodeName, executed)   — 每完成一个节点
+ *   onInterrupt(event)           — 遇到 interrupt，流结束
+ *   onDone(event)                — 图执行完毕，流结束
+ */
+const consumeSSE = async (response, callbacks) => {
+  if (!response.ok) {
+    const errBody = await response.text()
+    throw new Error(errBody || `HTTP ${response.status}`)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const event = JSON.parse(line.slice(6))
+          switch (event.type) {
+            case 'node':
+              callbacks.onNode?.(event.node, event.executed)
+              break
+            case 'interrupt':
+              callbacks.onInterrupt?.(event)
+              return
+            case 'done':
+              callbacks.onDone?.(event)
+              return
+          }
+        } catch {
+          // 跳过解析失败的行
+        }
+      }
+    }
   }
 }
 
@@ -518,6 +770,77 @@ h1 {
 
 .example-input, .example-output {
   margin: 5px 0;
+}
+
+/* 理解确认区 */
+.understand-section {
+  background-color: #f0f7ff;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #b3d9ff;
+}
+
+.understand-section h3 {
+  margin-bottom: 20px;
+  color: #1a5276;
+  font-size: 17px;
+}
+
+.understand-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.guide-question {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: #fff;
+  border-radius: 6px;
+  border: 1px solid #d6e8f7;
+  font-size: 15px;
+  color: #2c3e50;
+}
+
+.understand-summary {
+  margin-bottom: 20px;
+}
+
+.summary-prompt {
+  margin-bottom: 8px;
+  color: #1a5276;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.start-coding-btn {
+  padding: 10px 24px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.start-coding-btn:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.start-coding-btn:disabled {
+  background-color: #a0c4df;
+  cursor: not-allowed;
+}
+
+.hint-text {
+  margin-top: 8px;
+  color: #e67e22;
+  font-size: 13px;
 }
 
 .code-editor {
@@ -969,6 +1292,165 @@ h1 {
   font-size: 14px;
   border: 1px solid #e0e0e0;
   margin-top: 10px;
+}
+
+/* HIL Graph */
+.hil-graph-wrap {
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hil-graph-title {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+
+.hil-graph-svg {
+  width: 280px;
+  height: 300px;
+}
+
+/* 节点默认样式 */
+.gnode {
+  fill: #f0f0f0;
+  stroke: #d0d0d0;
+  stroke-width: 1.5;
+}
+
+/* 当前节点（黄色高亮）*/
+.gnode-active {
+  fill: #ffe58f;
+  stroke: #faad14;
+  stroke-width: 2.5;
+}
+
+/* 已执行节点（绿色）*/
+.gnode-passed {
+  fill: #d9f7be;
+  stroke: #52c41a;
+  stroke-width: 2;
+}
+
+.gnode-text {
+  font-size: 12px;
+  fill: #333;
+  pointer-events: none;
+}
+
+/* HIL 样式 */
+.hil-review-card {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.hil-review-card h3 {
+  color: #7c5200;
+  margin-bottom: 16px;
+}
+
+.hil-analysis {
+  background-color: #fff;
+  border-left: 4px solid #faad14;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  line-height: 1.7;
+  color: #333;
+}
+
+.hil-suggested-code {
+  margin-bottom: 16px;
+}
+
+.hil-suggested-code h4 {
+  color: #595959;
+  margin-bottom: 8px;
+}
+
+.hil-suggested-code pre {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  overflow-x: auto;
+}
+
+.hil-message {
+  color: #595959;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.hil-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.hil-accept-btn {
+  padding: 10px 24px;
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hil-accept-btn:hover:not(:disabled) {
+  background-color: #389e0d;
+}
+
+.hil-reject-btn {
+  padding: 10px 24px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hil-reject-btn:hover:not(:disabled) {
+  background-color: #cf1322;
+}
+
+.hil-accept-btn:disabled,
+.hil-reject-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hil-report {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.hil-report h3 {
+  color: #237804;
+  margin-bottom: 16px;
+}
+
+.hil-report-content {
+  line-height: 1.8;
+  color: #333;
 }
 
 .loading {

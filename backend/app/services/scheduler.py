@@ -65,11 +65,11 @@ def start_scheduler():
     logger.info("正在启动调度器...")
     
     # 添加法律法规获取任务
-    # 每小时执行一次
+    # 每周执行一次
     scheduler.add_job(
         run_scheduled_law_fetch_task,
         'interval',
-        hours=1,
+        weeks=1,
         id='fetch_law_documents',
         replace_existing=True
     )
@@ -78,16 +78,7 @@ def start_scheduler():
     scheduler.start()
     logger.info("调度器启动成功")
     
-    # 启动时自动执行一次法律法规获取任务
-    logger.info("启动时自动执行法律法规获取任务...")
-    try:
-        # 使用 asyncio.create_task() 在现有事件循环中执行异步任务
-        import asyncio
-        asyncio.create_task(run_scheduled_law_fetch_task())
-    except Exception as e:
-        logger.error(f"启动时执行法律法规获取任务失败: {str(e)}")
-        import traceback
-        logger.error(f"堆栈追踪: {traceback.format_exc()}")
+
 
 
 def stop_scheduler():

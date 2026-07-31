@@ -128,3 +128,8 @@ Migrations run automatically via `backend/docker-entrypoint.sh` on container sta
 - **Custom middleware over FastAPI dependencies for auth**: Ensures every request (including those that don't declare Depends) has a visitor_id set. Critical for the visitor-based data isolation to work everywhere without opt-in.
 - **No Pinia/Vuex**: The app's state is simple enough (essentially just login status + current visitor ID) that Composition API with localStorage suffices.
 - **LangSmith for prompt management**: Prompts can be pushed/pulled to LangSmith Hub, enabling prompt versioning and collaborative iteration without code changes.
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
