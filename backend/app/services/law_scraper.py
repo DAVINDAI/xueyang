@@ -5,10 +5,16 @@
 import os
 import logging
 from datetime import datetime
-from playwright.async_api import async_playwright
 
-# 配置日志
 logger = logging.getLogger(__name__)
+
+# Playwright 为可选依赖，未安装时抓取功能不可用
+try:
+    from playwright.async_api import async_playwright
+    _has_playwright = True
+except ImportError:
+    _has_playwright = False
+    logger.warning("Playwright 未安装，法律法规抓取功能不可用")
 
 # 确保下载目录存在
 download_dir = os.path.join(
@@ -91,10 +97,12 @@ class LawScraperService:
         使用Playwright获取国家法律法规数据库的法律文档
         """
         logger.info("开始执行法律法规获取任务")
-        
+
+        if not _has_playwright:
+            logger.warning("法律法规获取任务跳过: Playwright 未安装")
+            return
+
         try:
-            from playwright.async_api import async_playwright
-            
             async with async_playwright() as p:
                 # 确保下载目录存在
                 download_dir = os.path.join(
